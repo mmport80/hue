@@ -2,8 +2,83 @@
 defmodule Hue2.TweetInfo do
         alias Hue2.Repo
         alias Hue2.Article
+
+        import Timex
+        import Ecto.Query
         
-        def start2() do
+        def get_articles() do
+                Article 
+                |> select([c,_], c ) 
+                |> Hue2.Repo.all 
+                |> less_than_a_day_old
+                |> order
+                |> remove_dupes
+                |> Enum.take(10)
+                #sort desc
+                #more followers bad
+                #more faves & rtwts good
+        end
+        
+        defp order(articles) do
+                articles
+                |> Enum.sort_by(
+                        fn(article) ->
+                                article.followers_count / (1 + article.favorite_count + article.retweet_count * 2)
+                        end 
+                )
+        end
+        
+        
+        defp less_than_a_day_old(articles) do
+                articles
+                |> Enum.filter(
+                        fn(article) -> 
+                                Timex.Date.diff(
+                                        convert_ecto_to_timex(article.inserted_at),
+                                        Timex.Date.local(),
+                                        :days
+                                        )
+                                <= 1
+                        end
+                        )
+        end
+        
+        defp remove_dupes(articles) do
+                articles
+                |> Enum.reduce(
+                        [],
+                        fn(article, acc) ->
+                                #if tweetid already in don't include anymore
+                                cond do
+                                        acc
+                                        |> Enum.filter(
+                                                fn(a) ->
+                                                        (a.tweet_id_str == article.tweet_id_str)
+                                                end        
+                                        ) == [] ->
+                                                [article|acc]
+                                        true ->
+                                                acc
+                                end
+                        end
+                )
+        end
+        
+        #convert ecto date datetime to timex datetime
+        #find diff in days
+        
+        def convert_ecto_to_timex(ecto_dt) do
+                #to tuple
+                {:ok, tuple_dt} = Ecto.DateTime.dump(ecto_dt)
+                Timex.Date.from(tuple_dt)
+        end
+        
+        
+        
+        
+        #run every 15 mins
+        #get and store article data
+        def store() do
                 ExTwitter.home_timeline([count: 200])
                         #retweets don't have a bunch of required data
                         #i.e. favourite_count and original tweet user
@@ -14,24 +89,23 @@ defmodule Hue2.TweetInfo do
                         #something's not right => i.e. this tweet's a retweet! 
                         |> Enum.filter(
                                 fn(tweet) ->
-                                        #current tweet retweeted?
-                                        #original tweet rtwt count
-                                        !(!tweet.retweeted == false && tweet.retweet_count > 0)  
+                                        #original tweet rtwt count?
+                                        #trying to filter out retweets without retweeted status field
+                                        !(
+                                                #current tweet retweeted?
+                                                (!tweet.retweeted == false && tweet.retweet_count > 0)  
+                                                ||
+                                                #begins with 'RT'
+                                                String.starts_with?(tweet.text, "RT") 
+                                        )
                                 end
                         )
-                        #sort desc
-                        #more followers bad
-                        #more faves & rtwts good
-                        |> Enum.sort_by(
-                                fn(tweet) ->
-                                        tweet.user.followers_count/(1 + tweet.favorite_count + tweet.retweet_count * 2)
-                                end 
-                        )
+                        
                         #filters relevant tweets
                         #creates augmented article objects
                         |> Enum.reduce(
                                 [],
-                                fn(tweet, acc) -> 
+                                fn(tweet, acc) ->
                                         cond do 
                                                 #does tweet redirect elsewhere?
                                                 has_source_url?(tweet) ->
@@ -44,12 +118,15 @@ defmodule Hue2.TweetInfo do
                                         end
                                 end                                                                      
                         )
+                        |> order
                         |> Enum.take(10)
                         |> Enum.map(
                                 fn(article) ->
+                                        #IO.inspect article
                                         Repo.insert(article)
                                 end 
                         )
+                        
         end
         
                 
@@ -62,14 +139,18 @@ defmodule Hue2.TweetInfo do
                 
                 case HTTPoison.get(expanded_url, [], [ hackney: hackney ]) do
                         #prob paywalled
-                        {:error, %HTTPoison.Error{reason: _reason} } ->
+                        {:error, %HTTPoison.Error{reason: reason} } ->
+                                IO.inspect reason
                                 acc 
+                        {:error, error } ->
+                                IO.inspect error
                         {:ok, http} ->
                                 cond do
                                         #in case link goes to a pdf or something
                                         is_binary http.body ->
                                                 acc
                                         true ->
+                                                #extra clause - if no image return acc
                                                 media_url = http.body |> Floki.find("meta[property='og:image']") |> Floki.attribute("content") |> List.first
                                                 title = http.body |> Floki.find("meta[property='og:title']") |> Floki.attribute("content") |> List.first
                                                 description = http.body |> Floki.find("meta[property='og:description']") |> Floki.attribute("content") |> List.first
@@ -85,7 +166,10 @@ defmodule Hue2.TweetInfo do
                                                                                 title:          title,
                                                                                 favorite_count: tweet.favorite_count,
                                                                                 retweet_count:  tweet.retweet_count,
-                                                                                followers_count: tweet.user.followers_count
+                                                                                followers_count: tweet.user.followers_count,
+                                                                                tweet_id: tweet.id,
+                                                                                tweet_id_str: 0,
+                                                                                tweet_author: tweet.user.screen_name
                                                                                 }
                                                                         | acc
                                                                 ]
@@ -97,13 +181,17 @@ defmodule Hue2.TweetInfo do
         
         defp get_media_tweet_info( %ExTwitter.Model.Tweet{}=tweet, acc ) do
                 [ 
-                        %Article{media_url:      first_photo(tweet).media_url, 
-                                 text:           tweet.text,
-                                 expanded_url:   first_photo(tweet).expanded_url,
-                                 title:          "",
-                                 favorite_count: tweet.favorite_count,
-                                 retweet_count:  tweet.retweet_count,
-                                 followers_count: tweet.user.followers_count
+                        %Article{
+                                media_url:      first_photo(tweet).media_url, 
+                                text:           tweet.text,
+                                expanded_url:   first_photo(tweet).expanded_url,
+                                title:          "",
+                                favorite_count: tweet.favorite_count,
+                                retweet_count:  tweet.retweet_count,
+                                followers_count: tweet.user.followers_count,
+                                tweet_id:        0,
+                                tweet_id_str: tweet.id_str,
+                                tweet_author: tweet.user.screen_name
                                 }
                         | acc
                 ]

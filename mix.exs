@@ -19,7 +19,7 @@ defmodule Hue2.Mixfile do
   def application do
     [mod: {Hue2, []},
      applications: [:phoenix, :phoenix_html, :cowboy, :logger,
-                    :phoenix_ecto, :postgrex, :httpoison]]
+                    :phoenix_ecto, :postgrex, :httpoison, :tzdata, :quantum]]
   end
 
   # Specifies which paths to compile per environment.
@@ -41,7 +41,11 @@ defmodule Hue2.Mixfile do
      {:oauth, github: "tim/erlang-oauth"},
      {:extwitter, "~> 0.5"} ,
      {:floki, "~> 0.6"},
-     {:httpoison, "~> 0.7"} 
+     {:httpoison, "~> 0.7"},
+     {:timex, "~> 0.19"},
+     {:timex_ecto, "~> 0.5"},
+     
+     {:quantum, "~> 1.5"}
    ]
   end
 

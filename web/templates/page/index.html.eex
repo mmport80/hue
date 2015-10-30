@@ -1,16 +1,18 @@
 
 <div class="jumbotron">
-        <%= for tweet <- @tweets do %>
+        <%= for article <- @articles do %>
                 <hr />
-                <a href='<%= tweet.expanded_url %>'>
+                <a href='<%= article.expanded_url %>'>
                         <h1>
-                                <%= tweet.title %>
+                                <%= article.title %>
                         </h1>                
                 </a>   
-                <img src="<%= tweet.media_url %>" />
+                <img src="<%= article.media_url %>" />
                            
-                <p><%= tweet.text %></p>
-                <p> F <%= tweet.favorites %> / R <%= tweet.retweets %></p>
-                
+                <p><%= article.text %></p>
+                <!--
+                        <p> F <%= article.favorite_count %> / R <%= article.retweet_count %> / Fo <%= article.followers_count %></p>
+                        <p>Rank <%= (article.favorite_count+2*article.retweet_count)/article.followers_count %></p>
+                -->
         <% end %>
 </div>
