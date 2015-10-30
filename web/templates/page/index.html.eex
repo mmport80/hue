@@ -1,0 +1,16 @@
+
+<div class="jumbotron">
+        <%= for tweet <- @tweets do %>
+                <hr />
+                <a href='<%= tweet.expanded_url %>'>
+                        <h1>
+                                <%= tweet.title %>
+                        </h1>                
+                </a>   
+                <img src="<%= tweet.media_url %>" />
+                           
+                <p><%= tweet.text %></p>
+                <p> F <%= tweet.favorites %> / R <%= tweet.retweets %></p>
+                
+        <% end %>
+</div>
