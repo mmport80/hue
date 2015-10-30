@@ -144,6 +144,7 @@ defmodule Hue2.TweetInfo do
                                 acc 
                         {:error, error } ->
                                 IO.inspect error
+                                acc
                         {:ok, http} ->
                                 cond do
                                         #in case link goes to a pdf or something
@@ -175,6 +176,10 @@ defmodule Hue2.TweetInfo do
                                                                 ]
                                                 end
                                 end
+
+                        _ ->
+                                IO.puts "Something else happened"
+                                acc
                                         
                 end
         end

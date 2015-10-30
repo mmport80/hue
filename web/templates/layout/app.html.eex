@@ -1,28 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="">
-    <meta name="author" content="">
+        <head>
+                <meta charset="utf-8">
+                <meta http-equiv="X-UA-Compatible" content="IE=edge">
+                <meta name="viewport" content="width=device-width, initial-scale=1">
+                <meta name="description" content="">
+                <meta name="author" content="">
 
-    <title>Hello Phoenix!</title>
-    <link rel="stylesheet" href="<%= static_path(@conn, "/css/app.css") %>">
-  </head>
+                <link href='https://fonts.googleapis.com/css?family=Germania+One' rel='stylesheet' type='text/css'>
+                <link href='https://fonts.googleapis.com/css?family=Nova+Round' rel='stylesheet' type='text/css'>
+                <link href='https://fonts.googleapis.com/css?family=Unica+One' rel='stylesheet' type='text/css'>
+                <link href='https://fonts.googleapis.com/css?family=Josefin+Slab' rel='stylesheet' type='text/css'>
 
-  <body>
-    <div class="container" role="main">
-      <h1>
-        Quant Casual
-      </h1>
+                <title> Quant Casual </title>
+                <link rel="stylesheet" href="<%= static_path(@conn, "/css/app.css") %>">
+        </head>
 
-      <p class="alert alert-info" role="alert"><%= get_flash(@conn, :info) %></p>
-      <p class="alert alert-danger" role="alert"><%= get_flash(@conn, :error) %></p>
-
-      <%= @inner %>
-
-    </div> <!-- /container -->
-    <script src="<%= static_path(@conn, "/js/app.js") %>"></script>
-  </body>
+        <body>
+                
+                <div id="header">
+                        <br />
+                        <h1>
+                          Quant Casual
+                        </h1>
+                        <br /><br />
+                </div>
+                <p class="alert alert-info" role="alert"><%= get_flash(@conn, :info) %></p>
+                <p class="alert alert-danger" role="alert"><%= get_flash(@conn, :error) %></p>
+                
+                
+                <%= @inner %>
+                
+                
+                <div id="footer">
+                        <br />
+                        <div id="details">
+                                
+                                  <p>Advertise / <a href="https://www.twitter.com/huebrent1">Twitter</a> / RSS / By <a href="http://blog.johnorford.com">John Orford</a> / (c)2015 </p>
+                                
+                        </div>
+                        <br /><br /><br />
+                </div>
+                
+                
+                <script src="<%= static_path(@conn, "/js/app.js") %>"></script>
+        </body>
 </html>

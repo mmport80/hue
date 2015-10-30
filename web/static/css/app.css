@@ -4,11 +4,52 @@ img{
         }
 p {
         font-size:2.5em;
+        
         } 
+#articles{
+        margin-left: 5%;
+        margin-right: 5%;
+        
+        }
 h1 {
-        font-size:4.5em;
+        font-size:10em;
+        font-family: 'Unica One', cursive;
+        text-align: center;
+        color: #62A07B;
         }  
         
 h2 {
-        font-size:1em;
+        font-size:4em;
+        color: #5C4F79;
+        font-family: 'Josefin Slab', serif;
         }        
+#header{
+        width: 100%;
+        background-color: #536C8D;
+        }       
+#footer{
+        width: 100%;
+        background-color: #536C8D;
+        color: #62A07B;
+        }
+#details{
+        margin-left: 5%;
+        margin-right: 5%;
+        }
+body{
+        margin: 0%;
+        color: #536C8D;
+        font-family: Georgia, Serif;
+        font-weight: lighter;
+        }
+        
+a{
+        color: #4F8B89;
+        }
+        
+hr{
+        color: #5C4F79;
+        
+        }
+        
+
