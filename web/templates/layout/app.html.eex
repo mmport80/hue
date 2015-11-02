@@ -7,11 +7,15 @@
                 <meta name="description" content="">
                 <meta name="author" content="">
 
+                <!--
                 <link href='https://fonts.googleapis.com/css?family=Germania+One' rel='stylesheet' type='text/css'>
                 <link href='https://fonts.googleapis.com/css?family=Nova+Round' rel='stylesheet' type='text/css'>
+                -->
                 <link href='https://fonts.googleapis.com/css?family=Unica+One' rel='stylesheet' type='text/css'>
                 <link href='https://fonts.googleapis.com/css?family=Josefin+Slab' rel='stylesheet' type='text/css'>
-
+                <!--
+                <link href='https://fonts.googleapis.com/css?family=Gentium+Basic' rel='stylesheet' type='text/css'>
+                -->
                 <title> Quant Casual </title>
                 <link rel="stylesheet" href="<%= static_path(@conn, "/css/app.css") %>">
         </head>
@@ -36,13 +40,15 @@
                         <br />
                         <div id="details">
                                 
-                                  <p>Advertise / <a href="https://www.twitter.com/huebrent1">Twitter</a> / RSS / By <a href="http://blog.johnorford.com">John Orford</a> / (c)2015 </p>
+                                  <p>Advertise / <a href="https://www.twitter.com/huebrent1">Twitter</a> / RSS / by <a href="http://blog.johnorford.com">John Orford</a> / (c)2015 </p>
                                 
                         </div>
                         <br /><br /><br />
                 </div>
                 
                 
+                <!--
                 <script src="<%= static_path(@conn, "/js/app.js") %>"></script>
+                -->
         </body>
 </html>

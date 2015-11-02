@@ -11,9 +11,9 @@ defmodule Hue2.TweetInfo do
                 |> select([c,_], c ) 
                 |> Hue2.Repo.all 
                 |> less_than_a_day_old
-                |> order
                 |> remove_dupes
-                |> Enum.take(10)
+                |> order
+                |> Enum.take(100)
                 #sort desc
                 #more followers bad
                 #more faves & rtwts good
@@ -23,7 +23,7 @@ defmodule Hue2.TweetInfo do
                 articles
                 |> Enum.sort_by(
                         fn(article) ->
-                                article.followers_count / (1 + article.favorite_count + article.retweet_count * 2)
+                                 - (article.favorite_count + article.retweet_count * 2.66) / article.followers_count
                         end 
                 )
         end
@@ -80,27 +80,6 @@ defmodule Hue2.TweetInfo do
         #get and store article data
         def store() do
                 ExTwitter.home_timeline([count: 200])
-                        #retweets don't have a bunch of required data
-                        #i.e. favourite_count and original tweet user
-                        #this filters 'em out while extwitter doesn't support the retweeted_status field
-                        
-                        
-                        #if a tweet doesn't have a retweet tag, but doesn have a retweet count
-                        #something's not right => i.e. this tweet's a retweet! 
-                        |> Enum.filter(
-                                fn(tweet) ->
-                                        #original tweet rtwt count?
-                                        #trying to filter out retweets without retweeted status field
-                                        !(
-                                                #current tweet retweeted?
-                                                (!tweet.retweeted == false && tweet.retweet_count > 0)  
-                                                ||
-                                                #begins with 'RT'
-                                                String.starts_with?(tweet.text, "RT") 
-                                        )
-                                end
-                        )
-                        
                         #filters relevant tweets
                         #creates augmented article objects
                         |> Enum.reduce(
@@ -119,7 +98,7 @@ defmodule Hue2.TweetInfo do
                                 end                                                                      
                         )
                         |> order
-                        |> Enum.take(10)
+                        |> Enum.take(100)
                         |> Enum.map(
                                 fn(article) ->
                                         #IO.inspect article
@@ -137,50 +116,59 @@ defmodule Hue2.TweetInfo do
                 expanded_url = first_urls.expanded_url
                 hackney = [follow_redirect: true]
                 
-                case HTTPoison.get(expanded_url, [], [ hackney: hackney ]) do
-                        #prob paywalled
-                        {:error, %HTTPoison.Error{reason: reason} } ->
-                                IO.inspect reason
-                                acc 
-                        {:error, error } ->
-                                IO.inspect error
+                IO.puts expanded_url
+                sw = String.starts_with?(expanded_url, "http://tmblr.co/")
+                IO.puts sw
+                case expanded_url do
+                        #tmblr causes hackney to crash...
+                        sw -> 
                                 acc
-                        {:ok, http} ->
-                                cond do
-                                        #in case link goes to a pdf or something
-                                        is_binary http.body ->
+                        true ->
+                                case HTTPoison.get(expanded_url, [], [ hackney: hackney ]) do
+                                        #prob paywalled
+                                        {:error, %HTTPoison.Error{reason: reason} } ->
+                                                IO.inspect reason
+                                                acc 
+                                        {:error, error } ->
+                                                IO.inspect error
                                                 acc
-                                        true ->
-                                                #extra clause - if no image return acc
-                                                media_url = http.body |> Floki.find("meta[property='og:image']") |> Floki.attribute("content") |> List.first
-                                                title = http.body |> Floki.find("meta[property='og:title']") |> Floki.attribute("content") |> List.first
-                                                description = http.body |> Floki.find("meta[property='og:description']") |> Floki.attribute("content") |> List.first
-                                
+                                        {:ok, http} ->
                                                 cond do
-                                                        media_url == nil or media_url == "" ->
+                                                        #in case link goes to a pdf or something
+                                                        is_binary http.body ->
                                                                 acc
-                                                        true ->                                                
-                                                                [
-                                                                        %Article{ media_url:      media_url, 
-                                                                                text:           description,
-                                                                                expanded_url:   expanded_url,
-                                                                                title:          title,
-                                                                                favorite_count: tweet.favorite_count,
-                                                                                retweet_count:  tweet.retweet_count,
-                                                                                followers_count: tweet.user.followers_count,
-                                                                                tweet_id: tweet.id,
-                                                                                tweet_id_str: 0,
-                                                                                tweet_author: tweet.user.screen_name
-                                                                                }
-                                                                        | acc
-                                                                ]
+                                                        true ->
+                                                                #extra clause - if no image return acc
+                                                                media_url = http.body |> Floki.find("meta[property='og:image']") |> Floki.attribute("content") |> List.first
+                                                                title = http.body |> Floki.find("meta[property='og:title']") |> Floki.attribute("content") |> List.first
+                                                                description = http.body |> Floki.find("meta[property='og:description']") |> Floki.attribute("content") |> List.first
+                                                
+                                                                cond do
+                                                                        media_url == nil or media_url == "" ->
+                                                                                acc
+                                                                        true ->                                                
+                                                                                [
+                                                                                        %Article{ media_url:      media_url, 
+                                                                                                text:           description,
+                                                                                                expanded_url:   expanded_url,
+                                                                                                title:          title,
+                                                                                                favorite_count: get_favorite_count(tweet),
+                                                                                                retweet_count:  tweet.retweet_count,
+                                                                                                followers_count: get_followers_count(tweet),
+                                                                                                tweet_id: tweet.id,
+                                                                                                tweet_id_str: 0,
+                                                                                                tweet_author: tweet.user.screen_name
+                                                                                                }
+                                                                                        | acc
+                                                                                ]
+                                                                end
                                                 end
-                                end
 
-                        _ ->
-                                IO.puts "Something else happened"
-                                acc
+                                        _ ->
+                                                IO.puts "Something else happened"
+                                                acc
                                         
+                               end
                 end
         end
         
@@ -191,9 +179,9 @@ defmodule Hue2.TweetInfo do
                                 text:           tweet.text,
                                 expanded_url:   first_photo(tweet).expanded_url,
                                 title:          "",
-                                favorite_count: tweet.favorite_count,
+                                favorite_count: get_favorite_count(tweet),
                                 retweet_count:  tweet.retweet_count,
-                                followers_count: tweet.user.followers_count,
+                                followers_count: get_followers_count(tweet),
                                 tweet_id:        0,
                                 tweet_id_str: tweet.id_str,
                                 tweet_author: tweet.user.screen_name
@@ -201,6 +189,24 @@ defmodule Hue2.TweetInfo do
                         | acc
                 ]
                 
+        end
+        
+        
+        defp get_favorite_count(tweet) do
+                cond do
+                        tweet.retweeted_status == nil ->
+                                tweet.favorite_count
+                        true ->
+                                tweet.retweeted_status.favorite_count
+                end   
+        end
+        defp get_followers_count(tweet) do
+                cond do
+                        tweet.retweeted_status == nil ->
+                                tweet.user.followers_count
+                        true ->
+                                tweet.retweeted_status.user.followers_count
+                end   
         end
         
                

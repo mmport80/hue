@@ -3,14 +3,14 @@
         <%= for article <- @articles do %>
                 <a href='<%= article.expanded_url %>'>
                         <h2>
-                                
+                                <%= article.title %>
                         </h2>                
                 </a>   
                 <img src="<%= article.media_url %>" />
                            
                 <p><%= article.text %></p>
                 <p>
-                        { <a href="https://www.twitter.com/"<%= article.tweet_author %>><%= article.tweet_author %></a> }
+                        { <a href="https://www.twitter.com/<%= article.tweet_author %>/status/<%= article.tweet_id_str %>" > <%= article.tweet_author %></a> }
                 </p>
                 <!--
                         <p> F <%= article.favorite_count %> / R <%= article.retweet_count %> / Fo <%= article.followers_count %></p>
