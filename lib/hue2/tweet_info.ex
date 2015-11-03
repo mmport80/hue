@@ -1,4 +1,3 @@
-
 defmodule Hue2.TweetInfo do
         alias Hue2.Repo
         alias Hue2.Article
@@ -117,9 +116,6 @@ defmodule Hue2.TweetInfo do
                 expanded_url = first_urls.expanded_url
                 hackney = [follow_redirect: true]
                 
-                IO.puts expanded_url
-                #sw = String.starts_with?(expanded_url, "http://tmblr.co/")
-                
                 cond do
                         #tmblr causes hackney to crash...
                         String.starts_with?(expanded_url, "http://tmblr.co/") -> 
@@ -132,9 +128,6 @@ defmodule Hue2.TweetInfo do
                                         {:error, error } ->
                                                 acc
                                         {:ok, http} ->
-                                        
-                                                IO.inspect "bin"
-                                                #IO.inspect http.body
                                                 cond do
                                                         #in case link goes to a pdf or something
                                                         String.valid?(http.body) ->
@@ -143,21 +136,15 @@ defmodule Hue2.TweetInfo do
                                                                 title = http.body |> Floki.find("meta[property='og:title']") |> Floki.attribute("content") |> List.first
                                                                 description = http.body |> Floki.find("meta[property='og:description']") |> Floki.attribute("content") |> List.first
                                                                 
-                                                                IO.inspect "media_url"
-                                                                IO.inspect media_url
-                                                                
-                                                                
                                                                 cond do
                                                                         media_url == nil or media_url == "" ->
                                                                                 acc
                                                                         true ->   
-                                                                                IO.inspect description
                                                                                 cond do
                                                                                         description != nil ->
                                                                                                 a = String.length( description )
-                                                                                                IO.puts(a)
                                                                                         true ->
-                                                                                                nil
+                                                                                                description = ""
                                                                                 end
                                                                                                                      
                                                                                 [
