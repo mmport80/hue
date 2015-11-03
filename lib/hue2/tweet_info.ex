@@ -88,6 +88,7 @@ defmodule Hue2.TweetInfo do
                                         cond do 
                                                 #does tweet redirect elsewhere?
                                                 has_source_url?(tweet) ->
+                                                        IO.inspect "xoxo"
                                                         get_source_url_info(tweet, acc)
                                                 #does tweet contain a photo?
                                                 has_photos?(tweet) ->
@@ -117,36 +118,48 @@ defmodule Hue2.TweetInfo do
                 hackney = [follow_redirect: true]
                 
                 IO.puts expanded_url
-                sw = String.starts_with?(expanded_url, "http://tmblr.co/")
-                IO.puts sw
-                case expanded_url do
+                #sw = String.starts_with?(expanded_url, "http://tmblr.co/")
+                
+                cond do
                         #tmblr causes hackney to crash...
-                        sw -> 
+                        String.starts_with?(expanded_url, "http://tmblr.co/") -> 
                                 acc
                         true ->
                                 case HTTPoison.get(expanded_url, [], [ hackney: hackney ]) do
                                         #prob paywalled
                                         {:error, %HTTPoison.Error{reason: reason} } ->
-                                                IO.inspect reason
                                                 acc 
                                         {:error, error } ->
-                                                IO.inspect error
                                                 acc
                                         {:ok, http} ->
+                                        
+                                                IO.inspect "bin"
+                                                #IO.inspect http.body
                                                 cond do
                                                         #in case link goes to a pdf or something
-                                                        is_binary http.body ->
-                                                                acc
-                                                        true ->
+                                                        String.valid?(http.body) ->
                                                                 #extra clause - if no image return acc
                                                                 media_url = http.body |> Floki.find("meta[property='og:image']") |> Floki.attribute("content") |> List.first
                                                                 title = http.body |> Floki.find("meta[property='og:title']") |> Floki.attribute("content") |> List.first
                                                                 description = http.body |> Floki.find("meta[property='og:description']") |> Floki.attribute("content") |> List.first
-                                                
+                                                                
+                                                                IO.inspect "media_url"
+                                                                IO.inspect media_url
+                                                                
+                                                                
                                                                 cond do
                                                                         media_url == nil or media_url == "" ->
                                                                                 acc
-                                                                        true ->                                                
+                                                                        true ->   
+                                                                                IO.inspect description
+                                                                                cond do
+                                                                                        description != nil ->
+                                                                                                a = String.length( description )
+                                                                                                IO.puts(a)
+                                                                                        true ->
+                                                                                                nil
+                                                                                end
+                                                                                                                     
                                                                                 [
                                                                                         %Article{ media_url:      media_url, 
                                                                                                 text:           description,
@@ -155,13 +168,15 @@ defmodule Hue2.TweetInfo do
                                                                                                 favorite_count: get_favorite_count(tweet),
                                                                                                 retweet_count:  tweet.retweet_count,
                                                                                                 followers_count: get_followers_count(tweet),
-                                                                                                tweet_id: tweet.id,
-                                                                                                tweet_id_str: 0,
+                                                                                                tweet_id:        0,
+                                                                                                tweet_id_str: tweet.id_str,
                                                                                                 tweet_author: tweet.user.screen_name
                                                                                                 }
                                                                                         | acc
                                                                                 ]
                                                                 end
+                                                        true ->
+                                                                acc
                                                 end
 
                                         _ ->
