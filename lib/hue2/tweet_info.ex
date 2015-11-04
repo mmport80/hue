@@ -12,7 +12,7 @@ defmodule Hue2.TweetInfo do
                 |> less_than_a_day_old
                 |> remove_dupes
                 |> order
-                |> Enum.take(100)
+                |> Enum.take(10)
                 #sort desc
                 #more followers bad
                 #more faves & rtwts good
@@ -53,6 +53,7 @@ defmodule Hue2.TweetInfo do
                                         |> Enum.filter(
                                                 fn(a) ->
                                                         (a.tweet_id_str == article.tweet_id_str)
+                                                        || (a.text == article.text)
                                                 end        
                                         ) == [] ->
                                                 [article|acc]
@@ -84,10 +85,15 @@ defmodule Hue2.TweetInfo do
                         |> Enum.reduce(
                                 [],
                                 fn(tweet, acc) ->
+                                #has quoted status?
+                                #get quoted tweet then the rest
+                                #...
+                                        #use quoted tweet if a quote
+                                        tweet = get_quoted_status?(tweet)
+                                        
                                         cond do 
                                                 #does tweet redirect elsewhere?
                                                 has_source_url?(tweet) ->
-                                                        IO.inspect "xoxo"
                                                         get_source_url_info(tweet, acc)
                                                 #does tweet contain a photo?
                                                 has_photos?(tweet) ->
@@ -101,14 +107,13 @@ defmodule Hue2.TweetInfo do
                         |> Enum.take(100)
                         |> Enum.map(
                                 fn(article) ->
-                                        #IO.inspect article
                                         Repo.insert(article)
                                 end 
                         )
                         
         end
         
-                
+        
         
         defp get_source_url_info( %ExTwitter.Model.Tweet{}=tweet, acc ) do
                 
@@ -118,9 +123,14 @@ defmodule Hue2.TweetInfo do
                 
                 cond do
                         #tmblr causes hackney to crash...
-                        String.starts_with?(expanded_url, "http://tmblr.co/") -> 
+                        String.starts_with?(expanded_url, "http://tmblr.co/")
+                        || String.starts_with?(expanded_url, "http://www.rug.nl/") 
+                        || String.starts_with?(expanded_url, "http://abnormalreturns.com/")
+                        || String.starts_with?(expanded_url, "http://on.rt.com")
+                        -> 
                                 acc
                         true ->
+                                #IO.puts expanded_url
                                 case HTTPoison.get(expanded_url, [], [ hackney: hackney ]) do
                                         #prob paywalled
                                         {:error, %HTTPoison.Error{reason: reason} } ->
@@ -136,10 +146,14 @@ defmodule Hue2.TweetInfo do
                                                                 title = http.body |> Floki.find("meta[property='og:title']") |> Floki.attribute("content") |> List.first
                                                                 description = http.body |> Floki.find("meta[property='og:description']") |> Floki.attribute("content") |> List.first
                                                                 
+                                                                #IO.inspect title 
+                                                                #IO.inspect description 
+                                                                
                                                                 cond do
                                                                         media_url == nil or media_url == "" ->
                                                                                 acc
                                                                         true ->   
+                                                                        
                                                                                 cond do
                                                                                         description != nil ->
                                                                                                 a = String.length( description )
@@ -175,10 +189,13 @@ defmodule Hue2.TweetInfo do
         end
         
         defp get_media_tweet_info( %ExTwitter.Model.Tweet{}=tweet, acc ) do
+                #break out t.co links at end of every tweet
+                t = String.split(tweet.text, " https://t.co") |> List.first
+                
                 [ 
                         %Article{
                                 media_url:      first_photo(tweet).media_url, 
-                                text:           tweet.text,
+                                text:           t,
                                 expanded_url:   first_photo(tweet).expanded_url,
                                 title:          "",
                                 favorite_count: get_favorite_count(tweet),
@@ -190,7 +207,6 @@ defmodule Hue2.TweetInfo do
                                 }
                         | acc
                 ]
-                
         end
         
         
@@ -209,6 +225,19 @@ defmodule Hue2.TweetInfo do
                         true ->
                                 tweet.retweeted_status.user.followers_count
                 end   
+        end
+        
+        
+        #recursively grab quoted tweet until not more quoted tweets to be found
+        defp get_quoted_status?(%ExTwitter.Model.Tweet{}=tweet) do
+                cond do
+                        tweet.retweeted_status == nil && tweet.quoted_status == nil ->
+                                tweet
+                        tweet.retweeted_status == nil ->
+                                tweet = tweet.quoted_status.id |> ExTwitter.show |> get_quoted_status?
+                        true ->
+                                tweet = tweet.retweeted_status.id |> ExTwitter.show |> get_quoted_status?
+                end
         end
         
                

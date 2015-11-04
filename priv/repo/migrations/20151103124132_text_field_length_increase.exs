@@ -2,7 +2,8 @@ defmodule Hue2.Repo.Migrations.IncreaseDescriptionSize do
 use Ecto.Migration
         def change do
                 alter table(:articles) do
-                        modify :text, :string, size: 1000
+                        modify :media_url, :string, size: 2083
+                        modify :expanded_url, :string, size: 2083
                 end
         end
 end
