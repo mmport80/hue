@@ -127,10 +127,14 @@ defmodule Hue2.TweetInfo do
                         || String.starts_with?(expanded_url, "http://www.rug.nl/") 
                         || String.starts_with?(expanded_url, "http://abnormalreturns.com/")
                         || String.starts_with?(expanded_url, "http://on.rt.com")
+                        || String.starts_with?(expanded_url, "http://dlvr.it")
                         -> 
                                 acc
                         true ->
                                 #IO.puts expanded_url
+                                IO.puts "Current"
+                                IO.puts expanded_url
+                                IO.puts tweet.text
                                 case HTTPoison.get(expanded_url, [], [ hackney: hackney ]) do
                                         #prob paywalled
                                         {:error, %HTTPoison.Error{reason: reason} } ->
@@ -209,7 +213,7 @@ defmodule Hue2.TweetInfo do
                 ]
         end
         
-        
+        #prob not necessary any more - recursively grabbing source tweet
         defp get_favorite_count(tweet) do
                 cond do
                         tweet.retweeted_status == nil ->
@@ -229,6 +233,8 @@ defmodule Hue2.TweetInfo do
         
         
         #recursively grab quoted tweet until not more quoted tweets to be found
+        
+        #instead of calling api, cast quoted status as a tweet struct directly?
         defp get_quoted_status?(%ExTwitter.Model.Tweet{}=tweet) do
                 cond do
                         tweet.retweeted_status == nil && tweet.quoted_status == nil ->
@@ -240,9 +246,12 @@ defmodule Hue2.TweetInfo do
                 end
         end
         
-               
+        #photos but no video
         defp has_photos?( %ExTwitter.Model.Tweet{}=tweet ) do
-                Map.has_key?(tweet.entities, :media) && Enum.any?(photos(tweet))
+                Map.has_key?(tweet.entities, :media) 
+                && Enum.any?(photos(tweet))
+                #&& !String.match?(medium.media_url,~r/ext_tw_video_thumb/)
+                #&& !String.match?(d_url,~r/vine.co/)
         end
         
         defp has_source_url?( %ExTwitter.Model.Tweet{}=tweet ) do
@@ -250,6 +259,9 @@ defmodule Hue2.TweetInfo do
         end
         
         defp photos(%ExTwitter.Model.Tweet{}=tweet) do
+                
+                d_url = tweet.entities.urls |> List.first
+                
                 tweet.entities.media
                         |> Enum.filter(
                                 fn(medium) ->

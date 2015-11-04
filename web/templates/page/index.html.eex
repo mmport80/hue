@@ -6,7 +6,18 @@
                                 <%= article.title %>
                         </h2>                
                 </a>   
-                <img src="<%= article.media_url %>" />
+                
+                <!--
+                <%= if String.match?(article.media_url,~r/ext_tw_video_thumb/) do %>
+                        
+                        <video src="<%= convert_to_mp4_url(article.media_url) %>" controls>
+                                Your browser does not support the <code>video</code> element.
+                        </video>
+                <% else %>
+                        <img src='<%= article.media_url %>' />
+                <% end %>
+                -->       
+                <img src='<%= article.media_url %>' />
                            
                 <p><%= article.text %></p>
                 <p>
