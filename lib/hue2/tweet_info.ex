@@ -262,10 +262,13 @@ defmodule Hue2.TweetInfo do
                 
                 d_url = tweet.entities.urls |> List.first
                 
+                #IO.puts "d_url"
+                #IO.puts d_url
+                
                 tweet.entities.media
                         |> Enum.filter(
                                 fn(medium) ->
-                                        medium.type == "photo"
+                                        medium.type == "photo" && !String.match?(medium.media_url,~r/ext_tw_video_thumb/) #&& !String.match?(medium.media_url,~r/vine.co/)
                                 end )
                 end
                 
