@@ -12,7 +12,7 @@ defmodule Hue2.TweetInfo do
                 |> less_than_a_day_old
                 |> remove_dupes
                 |> order
-                |> Enum.take(10)
+                |> Enum.take(100)
                 #sort desc
                 #more followers bad
                 #more faves & rtwts good
@@ -22,7 +22,7 @@ defmodule Hue2.TweetInfo do
                 articles
                 |> Enum.sort_by(
                         fn(article) ->
-                                 - (article.favorite_count + article.retweet_count * 2.66) / article.followers_count
+                                 - (article.favorite_count + max(article.retweet_count - 1,0) * 2.66) / article.followers_count
                         end 
                 )
         end
@@ -80,30 +80,32 @@ defmodule Hue2.TweetInfo do
         #get and store article data
         def store() do
                 ExTwitter.home_timeline([count: 200])
+                        
                         #filters relevant tweets
                         #creates augmented article objects
                         |> Enum.reduce(
                                 [],
                                 fn(tweet, acc) ->
-                                #has quoted status?
-                                #get quoted tweet then the rest
-                                #...
-                                        #use quoted tweet if a quote
+                                        #use original quoted or retweeted tweet if a quote
                                         tweet = get_quoted_status?(tweet)
                                         
                                         cond do 
+                                                #reply to tweets lack context
+                                                tweet.in_reply_to_status_id_str != nil ->
+                                                        acc
                                                 #does tweet redirect elsewhere?
                                                 has_source_url?(tweet) ->
                                                         get_source_url_info(tweet, acc)
                                                 #does tweet contain a photo?
                                                 has_photos?(tweet) ->
-                                                        get_media_tweet_info( tweet, acc )
+                                                        get_media_tweet_info(tweet, acc )
                                                 true ->
                                                         acc
                                         end
                                 end                                                                      
                         )
                         |> order
+                        #change to 10 for prod
                         |> Enum.take(100)
                         |> Enum.map(
                                 fn(article) ->
@@ -166,13 +168,14 @@ defmodule Hue2.TweetInfo do
                                                                                 end
                                                                                                                      
                                                                                 [
-                                                                                        %Article{ media_url:      media_url, 
+                                                                                        %Article{ 
+                                                                                                media_url:      media_url, 
                                                                                                 text:           description,
                                                                                                 expanded_url:   expanded_url,
                                                                                                 title:          title,
                                                                                                 favorite_count: get_favorite_count(tweet),
                                                                                                 retweet_count:  tweet.retweet_count,
-                                                                                                followers_count: get_followers_count(tweet),
+                                                                                                followers_count:        get_followers_count(tweet),
                                                                                                 tweet_id:        0,
                                                                                                 tweet_id_str: tweet.id_str,
                                                                                                 tweet_author: tweet.user.screen_name
@@ -194,20 +197,20 @@ defmodule Hue2.TweetInfo do
         
         defp get_media_tweet_info( %ExTwitter.Model.Tweet{}=tweet, acc ) do
                 #break out t.co links at end of every tweet
-                t = String.split(tweet.text, " https://t.co") |> List.first
+                t = String.split(tweet.text, [" https://t.co"," http://t.co"]) |> List.first
                 
                 [ 
                         %Article{
-                                media_url:      first_photo(tweet).media_url, 
-                                text:           t,
-                                expanded_url:   first_photo(tweet).expanded_url,
-                                title:          "",
-                                favorite_count: get_favorite_count(tweet),
-                                retweet_count:  tweet.retweet_count,
-                                followers_count: get_followers_count(tweet),
-                                tweet_id:        0,
-                                tweet_id_str: tweet.id_str,
-                                tweet_author: tweet.user.screen_name
+                                media_url:              first_photo(tweet).media_url, 
+                                text:                   t,
+                                expanded_url:           first_photo(tweet).expanded_url,
+                                title:                  "",
+                                favorite_count:         get_favorite_count(tweet),
+                                retweet_count:          tweet.retweet_count,
+                                followers_count:        get_followers_count(tweet),
+                                tweet_id:               0,
+                                tweet_id_str:           tweet.id_str,
+                                tweet_author:           tweet.user.screen_name
                                 }
                         | acc
                 ]
@@ -232,17 +235,16 @@ defmodule Hue2.TweetInfo do
         end
         
         
-        #recursively grab quoted tweet until not more quoted tweets to be found
-        
+        #recursively grab quoted tweet until not more quoted tweets to be foun
         #instead of calling api, cast quoted status as a tweet struct directly?
         defp get_quoted_status?(%ExTwitter.Model.Tweet{}=tweet) do
                 cond do
                         tweet.retweeted_status == nil && tweet.quoted_status == nil ->
                                 tweet
                         tweet.retweeted_status == nil ->
-                                tweet = tweet.quoted_status.id |> ExTwitter.show |> get_quoted_status?
+                                tweet.quoted_status.id |> ExTwitter.show |> get_quoted_status?
                         true ->
-                                tweet = tweet.retweeted_status.id |> ExTwitter.show |> get_quoted_status?
+                                tweet.retweeted_status.id |> ExTwitter.show |> get_quoted_status?
                 end
         end
         
@@ -255,20 +257,20 @@ defmodule Hue2.TweetInfo do
         end
         
         defp has_source_url?( %ExTwitter.Model.Tweet{}=tweet ) do
-                Map.has_key?(tweet.entities, :urls) && Enum.any?(tweet.entities.urls) #&& Map.has_key?(tweet.entities.urls, :expanded_url)
+                Map.has_key?(tweet.entities, :urls)
+                && Enum.any?(tweet.entities.urls)
+                && (
+                        url = tweet.entities.urls |> List.first
+                        d_url = url.display_url
+                        !String.match?(d_url,~r/vine.co/)
+                        )
         end
         
         defp photos(%ExTwitter.Model.Tweet{}=tweet) do
-                
-                d_url = tweet.entities.urls |> List.first
-                
-                #IO.puts "d_url"
-                #IO.puts d_url
-                
                 tweet.entities.media
                         |> Enum.filter(
                                 fn(medium) ->
-                                        medium.type == "photo" && !String.match?(medium.media_url,~r/ext_tw_video_thumb/) #&& !String.match?(medium.media_url,~r/vine.co/)
+                                        medium.type == "photo" && !String.match?(medium.media_url,~r/ext_tw_video_thumb/)# && !String.match?(tweet.entities.,~r/vine.co/)
                                 end )
                 end
                 
