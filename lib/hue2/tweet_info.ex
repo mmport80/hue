@@ -333,5 +333,5 @@ defmodule Hue2.TweetInfo do
         defp first_photo(%ExTwitter.Model.Tweet{}=tweet) do
                 photos(tweet)
                 |> hd
-                end
+        end
 end
