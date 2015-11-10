@@ -7,17 +7,8 @@
                         </h2>                
                 </a>   
                 
-                <!--
-                <%= if String.match?(article.media_url,~r/ext_tw_video_thumb/) do %>
-                        
-                        <video src="<%= convert_to_mp4_url(article.media_url) %>" controls>
-                                Your browser does not support the <code>video</code> element.
-                        </video>
-                <% else %>
-                        <img src='<%= article.media_url %>' />
-                <% end %>
-                -->       
-                <%= if article.media_url != "" do %>
+                     
+                <%= if article.media_url != nil || article.media_url != "" do %>
                         <img src='<%= article.media_url %>' />
                 <% end %>
                 <p><%= article.text %></p>

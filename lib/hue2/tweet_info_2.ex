@@ -7,6 +7,90 @@ defmodule Hue2.TweetInfo2 do
         
         
         ##################################################################
+        
+        
+        def get_articles() do
+                Article 
+                |> select([c,_], c ) 
+                |> Hue2.Repo.all 
+                |> less_than_a_day_old
+                |> remove_dupes
+                |> order
+                |> Enum.take(100)
+                #sort desc
+                #more followers bad
+                #more faves & rtwts good
+        end
+        
+        defp order(articles) do
+                articles
+                |> Enum.sort_by(
+                        fn(article) ->
+                                 - (article.favorite_count + max(article.retweet_count - 1, 0) * 2.66) / article.followers_count
+                        end 
+                )
+        end
+        
+        
+        defp less_than_a_day_old(articles) do
+                articles
+                |> Enum.filter(
+                        fn(article) -> 
+                                Timex.Date.diff(
+                                        convert_ecto_to_timex(article.inserted_at),
+                                        Timex.Date.local(),
+                                        :days
+                                        )
+                                <= 1
+                        end
+                        )
+        end
+        
+        defp remove_dupes(articles) do
+                articles
+                |> Enum.reduce(
+                        [],
+                        fn(article, acc) ->
+                                #if tweetid already in don't include anymore
+                                cond do
+                                        acc
+                                        |> Enum.filter(
+                                                fn(a) ->
+                                                        (a.tweet_id_str == article.tweet_id_str)
+                                                        || (a.text == article.text)
+                                                end        
+                                        ) == [] ->
+                                                [article|acc]
+                                        true ->
+                                                acc
+                                end
+                        end
+                )
+        end
+        
+        #convert ecto date datetime to timex datetime
+        #find diff in days
+        
+        defp convert_ecto_to_timex(ecto_dt) do
+                #to tuple
+                {:ok, tuple_dt} = Ecto.DateTime.dump(ecto_dt)
+                Timex.Date.from(tuple_dt)
+        end
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
         ##################################################################
         
         
@@ -186,13 +270,18 @@ defmodule Hue2.TweetInfo2 do
                                                 cond do
                                                         #in case link goes to a pdf or something
                                                         String.valid?(http.body) ->
+                                                                #gotta figure out how to do this better!!
+                                                                #maybe pipes???
+                                                        
                                                                 media_url = http.body |> Floki.find("meta[property='og:image']") |> Floki.attribute("content") |> List.first
                                                 
                                                                 cond do
                                                                         media_url != nil ->
-                                                                                %{ vanilla_return | article: %Article{ article | media_url: media_url } }
+                                                                                a1 = %Article{ article | media_url: media_url }
+                                                                                v1 = %{ vanilla_return | article: a1 }
                                                                         true ->
-                                                                                vanilla_return
+                                                                                a1 = article
+                                                                                v1 = vanilla_return
                                                                 end
                                                 
                                                 
@@ -204,9 +293,12 @@ defmodule Hue2.TweetInfo2 do
                                                                 
                                                                 cond do
                                                                         title != nil ->
-                                                                                %{ vanilla_return | article:  %Article{ article | title: title } }
+                                                                        
+                                                                                a2 = %Article{ a1 | title: title }
+                                                                                v2 = %{ v1 | article: a2 }
                                                                         true ->
-                                                                                vanilla_return
+                                                                                a2 = a1
+                                                                                v2 = v1
                                                                 end
                                                 
                                                 
@@ -214,10 +306,15 @@ defmodule Hue2.TweetInfo2 do
                                                 
                                                                 cond do
                                                                         description != nil ->
-                                                                                %{ vanilla_return | article:  %Article{ article | text: description } }
+                                                                                a3 = %Article{ a2 | text: description }
+                                                                                v3 = %{ v2 | article: a3 }
                                                                         true ->
-                                                                                vanilla_return
+                                                                                a3 = a2
+                                                                                v3 = v2
                                                                 end
+                                                                
+                                                                #return last value
+                                                                v3
                                                         #link to PDF / PPT etc                                                        
                                                         true ->
                                                                 vanilla_return
