@@ -45,16 +45,21 @@ defmodule Hue2.TweetInfo2 do
                                         
                                 end                                                                      
                         )
+                        |> Enum.filter(
+                                fn( x ) ->
+                                        IO.inspect x
+                                        true
+                                end
+                        )
                         #return only the articles
                         |> Enum.map(
-                                fn( %{tweet: %ExTwitter.Model.Tweet{} = tweet, article: %Article{} = article} ) ->
-                                        IO.inspect article
+                                fn( %{tweet: %ExTwitter.Model.Tweet{} = tweet, article: %Hue2.Article{} = article} ) ->
                                         article
                                 end
                         )
                         |> order
                         #change to 10 for prod
-                        |> Enum.take(100)
+                        |> Enum.take(200)
                         |> Enum.map(
                                 fn( article ) ->
                                         Repo.insert(article)
@@ -75,6 +80,9 @@ defmodule Hue2.TweetInfo2 do
         end
         
         defp init( %ExTwitter.Model.Tweet{} = tweet ) do
+                
+                IO.puts tweet.text
+                
                 article = %Article{ 
                         media_url:              nil, 
                         #remove trailing t.co url
@@ -108,12 +116,13 @@ defmodule Hue2.TweetInfo2 do
         #####################################################################
         
         defp get_expanded_url( %{tweet: %ExTwitter.Model.Tweet{} = tweet, article: %Article{} = article} ) do
+                vanilla_return = %{tweet: tweet, article: article}
                 cond do
                         has_source_url?(tweet) ->
                                 [first_urls|_] = tweet.entities.urls
-                                %{tweet: tweet, article: %Article{ article | expanded_url: first_urls.expanded_url }}
+                                %{ vanilla_return | article: %Article{ article | expanded_url: first_urls.expanded_url } }
                         true ->
-                                %{tweet: tweet, article: article}
+                                vanilla_return
                 end
                 
         end
@@ -131,26 +140,23 @@ defmodule Hue2.TweetInfo2 do
         #####################################################################
         
         defp get_local_media_url( %{tweet: %ExTwitter.Model.Tweet{} = tweet, article: %Article{} = article} ) do
+                vanilla_return = %{tweet: tweet, article: article}
                 cond do
-                        has_photos?(tweet) ->
-                                %Article{ article | media_url: first_photo(tweet).media_url }
+                        #has media and has photos
+                        Map.has_key?(tweet.entities, :media) && Enum.any?( photos(tweet) ) ->
+                                %{ vanilla_return | article:  %Article{ article | media_url: first_photo(tweet).media_url } }
                         true ->
-                                nil
+                                vanilla_return
                 end
-                %{tweet: tweet, article: article}
-        end
-        
-        #photos but no video
-        defp has_photos?( %ExTwitter.Model.Tweet{}=tweet ) do
-                Map.has_key?(tweet.entities, :media) && Enum.any?( photos(tweet) )
         end
         
         defp photos(%ExTwitter.Model.Tweet{}=tweet) do
                 tweet.entities.media
                         |> Enum.filter(
                                 fn(medium) ->
-                                        medium.type == "photo" && !String.match?(medium.media_url,~r/ext_tw_video_thumb/)
-                                end)
+                                        medium.type == "photo" && !String.match?(medium.media_url, ~r/ext_tw_video_thumb/)
+                                end
+                        )
         end
         
         defp first_photo(%ExTwitter.Model.Tweet{}=tweet) do
@@ -163,58 +169,67 @@ defmodule Hue2.TweetInfo2 do
         
         defp get_source_data( %{tweet: %ExTwitter.Model.Tweet{} = tweet, article: %Article{} = article} ) do
                 
-                #hackney = [follow_redirect: true]
-                IO.puts article.expanded_url
+                vanilla_return = %{tweet: tweet, article: article}
                 
                 cond do
-                        article.expanded_url != nil ->
+                        #tmblr causes hackney to crash...
+                        article.expanded_url == nil -> 
+                                vanilla_return
+                        true ->
                                 #spawn so that crashes won't bring everything down
                                 case HTTPoison.get(article.expanded_url, [], [ hackney: [follow_redirect: true] ]) do
                                         #prob paywalled
                                         {:error, %HTTPoison.Error{reason: reason} } ->
                                                 IO.inspect reason
+                                                vanilla_return
                                         {:ok, http} ->
                                                 cond do
                                                         #in case link goes to a pdf or something
                                                         String.valid?(http.body) ->
-                                                                
-                                                                
                                                                 media_url = http.body |> Floki.find("meta[property='og:image']") |> Floki.attribute("content") |> List.first
-                                                                
+                                                
                                                                 cond do
                                                                         media_url != nil ->
-                                                                                %Article{ article | media_url: media_url }
+                                                                                %{ vanilla_return | article: %Article{ article | media_url: media_url } }
                                                                         true ->
-                                                                                nil
+                                                                                vanilla_return
                                                                 end
-                                                                
-                                                                
+                                                
+                                                
                                                                 title = http.body |> Floki.find("meta[property='og:title']") |> Floki.attribute("content") |> List.first
+                                                
+                                                                IO.puts "title/"
+                                                                IO.puts title
+                                                                IO.puts "/title"
                                                                 
                                                                 cond do
                                                                         title != nil ->
-                                                                                %Article{ article | title: title }
+                                                                                %{ vanilla_return | article:  %Article{ article | title: title } }
                                                                         true ->
-                                                                                nil
+                                                                                vanilla_return
                                                                 end
-                                                                
-                                                                
+                                                
+                                                
                                                                 description = http.body |> Floki.find("meta[property='og:description']") |> Floki.attribute("content") |> List.first
-                                                                
+                                                
                                                                 cond do
                                                                         description != nil ->
-                                                                                %Article{ article | text: description }
+                                                                                %{ vanilla_return | article:  %Article{ article | text: description } }
                                                                         true ->
-                                                                                nil
-                                                                end                                                        
+                                                                                vanilla_return
+                                                                end
+                                                        #link to PDF / PPT etc                                                        
                                                         true ->
-                                                                nil
+                                                                vanilla_return
                                                 end
+                                        _ ->
+                                                IO.puts "something else happened"
+                                                #IO.inspect 
+                                                vanilla_return
                                 end
-                        true ->
-                                nil
+                                  
                 end
-                %{tweet: tweet, article: article}
+                
         end
         
         
