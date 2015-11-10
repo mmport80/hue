@@ -5,6 +5,9 @@ defmodule Hue2.TweetInfo do
         import Timex
         import Ecto.Query
         
+        ##################################################################
+        ##################################################################
+        
         def get_articles() do
                 Article 
                 |> select([c,_], c ) 
@@ -22,7 +25,7 @@ defmodule Hue2.TweetInfo do
                 articles
                 |> Enum.sort_by(
                         fn(article) ->
-                                 - (article.favorite_count + max(article.retweet_count - 1,0) * 2.66) / article.followers_count
+                                 - (article.favorite_count + max(article.retweet_count - 1, 0) * 2.66) / article.followers_count
                         end 
                 )
         end
@@ -67,27 +70,33 @@ defmodule Hue2.TweetInfo do
         #convert ecto date datetime to timex datetime
         #find diff in days
         
-        def convert_ecto_to_timex(ecto_dt) do
+        defp convert_ecto_to_timex(ecto_dt) do
                 #to tuple
                 {:ok, tuple_dt} = Ecto.DateTime.dump(ecto_dt)
                 Timex.Date.from(tuple_dt)
         end
         
-        
-        
+        ##################################################################
+        ##################################################################
         
         #run every 15 mins
         #get and store article data
+        
+        
+        #go thru each field
+        #fill each depending on whether info is available
+        #
+        #ends with storing an article object
+        
         def store() do
                 ExTwitter.home_timeline([count: 200])
-                        
                         #filters relevant tweets
                         #creates augmented article objects
                         |> Enum.reduce(
                                 [],
                                 fn(tweet, acc) ->
                                         #use original quoted or retweeted tweet if a quote
-                                        tweet = get_quoted_status?(tweet)
+                                        tweet = get_quoted_or_rtwd_status?(tweet)
                                         
                                         cond do 
                                                 #reply to tweets lack context
@@ -99,8 +108,10 @@ defmodule Hue2.TweetInfo do
                                                 #does tweet contain a photo?
                                                 has_photos?(tweet) ->
                                                         get_media_tweet_info(tweet, acc )
+                                                #just text tweet?
                                                 true ->
-                                                        acc
+                                                        get_text_tweet_info(tweet, acc)
+                                                        #acc
                                         end
                                 end                                                                      
                         )
@@ -130,10 +141,10 @@ defmodule Hue2.TweetInfo do
                         || String.starts_with?(expanded_url, "http://abnormalreturns.com/")
                         || String.starts_with?(expanded_url, "http://on.rt.com")
                         || String.starts_with?(expanded_url, "http://dlvr.it")
+                        || String.starts_with?(expanded_url, "http://stks.co")
                         -> 
                                 acc
                         true ->
-                                #IO.puts expanded_url
                                 IO.puts "Current"
                                 IO.puts expanded_url
                                 IO.puts tweet.text
@@ -152,21 +163,31 @@ defmodule Hue2.TweetInfo do
                                                                 title = http.body |> Floki.find("meta[property='og:title']") |> Floki.attribute("content") |> List.first
                                                                 description = http.body |> Floki.find("meta[property='og:description']") |> Floki.attribute("content") |> List.first
                                                                 
-                                                                #IO.inspect title 
-                                                                #IO.inspect description 
-                                                                
                                                                 cond do
                                                                         media_url == nil or media_url == "" ->
-                                                                                acc
+                                                                        t = String.split(tweet.text, [" https://t.co"," http://t.co"]) |> List.first
+                                                                        [
+                                                                                %Article{ 
+                                                                                        media_url:      "", 
+                                                                                        text:           t,
+                                                                                        expanded_url:   expanded_url,
+                                                                                        title:          title,
+                                                                                        favorite_count: get_favorite_count(tweet),
+                                                                                        retweet_count:  tweet.retweet_count,
+                                                                                        followers_count:        get_followers_count(tweet),
+                                                                                        tweet_id:        0,
+                                                                                        tweet_id_str: tweet.id_str,
+                                                                                        tweet_author: tweet.user.screen_name
+                                                                                        }
+                                                                                | acc
+                                                                        ]
                                                                         true ->   
-                                                                        
                                                                                 cond do
                                                                                         description != nil ->
                                                                                                 a = String.length( description )
                                                                                         true ->
                                                                                                 description = ""
-                                                                                end
-                                                                                                                     
+                                                                                end                              
                                                                                 [
                                                                                         %Article{ 
                                                                                                 media_url:      media_url, 
@@ -183,8 +204,24 @@ defmodule Hue2.TweetInfo do
                                                                                         | acc
                                                                                 ]
                                                                 end
+                                                        #PDF / PPT etc
                                                         true ->
-                                                                acc
+                                                                t = String.split(tweet.text, [" https://t.co"," http://t.co"]) |> List.first
+                                                                [
+                                                                        %Article{ 
+                                                                                media_url:      "", 
+                                                                                text:           t,
+                                                                                expanded_url:   expanded_url,
+                                                                                title:          "",
+                                                                                favorite_count: get_favorite_count(tweet),
+                                                                                retweet_count:  tweet.retweet_count,
+                                                                                followers_count:        get_followers_count(tweet),
+                                                                                tweet_id:        0,
+                                                                                tweet_id_str: tweet.id_str,
+                                                                                tweet_author: tweet.user.screen_name
+                                                                                }
+                                                                        | acc
+                                                                ]
                                                 end
 
                                         _ ->
@@ -216,6 +253,28 @@ defmodule Hue2.TweetInfo do
                 ]
         end
         
+        defp get_text_tweet_info( %ExTwitter.Model.Tweet{}=tweet, acc ) do
+                #break out t.co links at end of every tweet
+                t = String.split(tweet.text, [" https://t.co"," http://t.co"]) |> List.first
+                
+                [ 
+                        %Article{
+                                media_url:              "", 
+                                text:                   t,
+                                expanded_url:           "",
+                                title:                  "",
+                                favorite_count:         get_favorite_count(tweet),
+                                retweet_count:          tweet.retweet_count,
+                                followers_count:        get_followers_count(tweet),
+                                tweet_id:               0,
+                                tweet_id_str:           tweet.id_str,
+                                tweet_author:           tweet.user.screen_name
+                                }
+                        | acc
+                ]
+        end
+        
+        
         #prob not necessary any more - recursively grabbing source tweet
         defp get_favorite_count(tweet) do
                 cond do
@@ -237,23 +296,20 @@ defmodule Hue2.TweetInfo do
         
         #recursively grab quoted tweet until not more quoted tweets to be foun
         #instead of calling api, cast quoted status as a tweet struct directly?
-        defp get_quoted_status?(%ExTwitter.Model.Tweet{}=tweet) do
+        defp get_quoted_or_rtwd_status?(%ExTwitter.Model.Tweet{}=tweet) do
                 cond do
                         tweet.retweeted_status == nil && tweet.quoted_status == nil ->
                                 tweet
                         tweet.retweeted_status == nil ->
-                                tweet.quoted_status.id |> ExTwitter.show |> get_quoted_status?
+                                tweet.quoted_status.id |> ExTwitter.show |> get_quoted_or_rtwd_status?
                         true ->
-                                tweet.retweeted_status.id |> ExTwitter.show |> get_quoted_status?
+                                tweet.retweeted_status.id |> ExTwitter.show |> get_quoted_or_rtwd_status?
                 end
         end
         
         #photos but no video
         defp has_photos?( %ExTwitter.Model.Tweet{}=tweet ) do
-                Map.has_key?(tweet.entities, :media) 
-                && Enum.any?(photos(tweet))
-                #&& !String.match?(medium.media_url,~r/ext_tw_video_thumb/)
-                #&& !String.match?(d_url,~r/vine.co/)
+                Map.has_key?(tweet.entities, :media) && Enum.any?(photos(tweet))
         end
         
         defp has_source_url?( %ExTwitter.Model.Tweet{}=tweet ) do
@@ -270,8 +326,8 @@ defmodule Hue2.TweetInfo do
                 tweet.entities.media
                         |> Enum.filter(
                                 fn(medium) ->
-                                        medium.type == "photo" && !String.match?(medium.media_url,~r/ext_tw_video_thumb/)# && !String.match?(tweet.entities.,~r/vine.co/)
-                                end )
+                                        medium.type == "photo" && !String.match?(medium.media_url,~r/ext_tw_video_thumb/)
+                                end)
                 end
                 
         defp first_photo(%ExTwitter.Model.Tweet{}=tweet) do

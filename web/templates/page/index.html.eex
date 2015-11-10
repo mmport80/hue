@@ -17,8 +17,9 @@
                         <img src='<%= article.media_url %>' />
                 <% end %>
                 -->       
-                <img src='<%= article.media_url %>' />
-                           
+                <%= if article.media_url != "" do %>
+                        <img src='<%= article.media_url %>' />
+                <% end %>
                 <p><%= article.text %></p>
                 <p>
                         { <a href="https://www.twitter.com/<%= article.tweet_author %>/status/<%= article.tweet_id_str %>" > <%= article.tweet_author %></a> }
