@@ -254,45 +254,30 @@ defmodule Hue2.TweetInfo2 do
                                                         String.valid?(http.body) ->
                                                                 #gotta figure out how to do this better!!
                                                                 #maybe pipes???
-                                                        
+                                                
+                                                
                                                                 media_url = http.body |> Floki.find("meta[property='og:image']") |> Floki.attribute("content") |> List.first
                                                 
-                                                                cond do
-                                                                        media_url != nil ->
-                                                                                a1 = %Article{ article | media_url: media_url }
-                                                                                v1 = %{ vanilla_return | article: a1 }
-                                                                        true ->
-                                                                                a1 = article
-                                                                                v1 = vanilla_return
+                                                                if media_url != nil do
+                                                                        %Article{ article | media_url: media_url }
                                                                 end
                                                 
                                                 
                                                                 title = http.body |> Floki.find("meta[property='og:title']") |> Floki.attribute("content") |> List.first
                                                 
-                                                                cond do
-                                                                        title != nil ->
-                                                                        
-                                                                                a2 = %Article{ a1 | title: title }
-                                                                                v2 = %{ v1 | article: a2 }
-                                                                        true ->
-                                                                                a2 = a1
-                                                                                v2 = v1
+                                                                if title != nil do
+                                                                        %Article{ article | title: title }
                                                                 end
                                                 
                                                 
                                                                 description = http.body |> Floki.find("meta[property='og:description']") |> Floki.attribute("content") |> List.first
                                                 
-                                                                cond do
-                                                                        description != nil ->
-                                                                                a3 = %Article{ a2 | text: description }
-                                                                                v3 = %{ v2 | article: a3 }
-                                                                        true ->
-                                                                                a3 = a2
-                                                                                v3 = v2
+                                                                if description != nil do
+                                                                        %Article{ article | text: description }
                                                                 end
                                                                 
                                                                 #return last value
-                                                                v3
+                                                                %{tweet: tweet, article: article}
                                                         #link to PDF / PPT etc                                                        
                                                         true ->
                                                                 vanilla_return
