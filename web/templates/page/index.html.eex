@@ -8,7 +8,7 @@
                 </a>   
                 
                      
-                <%= if article.media_url != nil || article.media_url != "" do %>
+                <%= if article.media_url != nil && article.media_url != "" do %>
                         <img src='<%= article.media_url %>' />
                 <% end %>
                 <p><%= article.text %></p>

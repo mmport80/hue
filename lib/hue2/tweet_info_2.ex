@@ -16,7 +16,7 @@ defmodule Hue2.TweetInfo2 do
                 |> less_than_a_day_old
                 |> remove_dupes
                 |> order
-                |> Enum.take(100)
+                |> Enum.take(200)
                 #sort desc
                 #more followers bad
                 #more faves & rtwts good
@@ -77,29 +77,10 @@ defmodule Hue2.TweetInfo2 do
                 Timex.Date.from(tuple_dt)
         end
         
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
         ##################################################################
-        
-        
-        
         
         #run every 15 mins
         #get and store article data
-        
-        
         
         #map thru array of tweets
         #go thru each field of each tweet
@@ -107,11 +88,10 @@ defmodule Hue2.TweetInfo2 do
         #
         #ends with storing an article object
         
-        
         #every function accepts and returns an article object and a tweet
         
         def store() do
-                ExTwitter.home_timeline([count: 10])
+                ExTwitter.home_timeline([count: 200])
                         #filters relevant tweets
                         #creates augmented article objects
                         |> Enum.map(
@@ -163,26 +143,6 @@ defmodule Hue2.TweetInfo2 do
                 end
         end
         
-        defp init( %ExTwitter.Model.Tweet{} = tweet ) do
-                
-                IO.puts tweet.text
-                
-                article = %Article{ 
-                        media_url:              nil, 
-                        #remove trailing t.co url
-                        text:                   String.split(tweet.text, [" https://t.co"," http://t.co"]) |> List.first,
-                        expanded_url:           nil,
-                        title:                  nil,
-                        favorite_count:         tweet.favorite_count,
-                        retweet_count:          tweet.retweet_count,
-                        followers_count:        tweet.user.followers_count,
-                        tweet_id:               0,
-                        tweet_id_str:           tweet.id_str,
-                        tweet_author:           tweet.user.screen_name
-                        }        
-                %{tweet: tweet, article: article}
-        end
-        
         defp order(articles) do
                 articles
                 |> Enum.sort_by(
@@ -196,6 +156,28 @@ defmodule Hue2.TweetInfo2 do
         #defp get_local_media_url( %{tweet: %ExTwitter.Model.Tweet{} = tweet, article: %Article{} = article} ) do
         #        %{tweet: tweet, article: article}
         #end
+        
+        #####################################################################
+        
+        defp init( %ExTwitter.Model.Tweet{} = tweet ) do
+                
+                IO.puts tweet.text
+                
+                article = %Article{ 
+                        media_url:              nil, 
+                        #remove trailing t.co url
+                        text:                   tweet.text, #String.split(tweet.text, [" https://t.co"," http://t.co"]) |> List.first,
+                        expanded_url:           nil,
+                        title:                  nil,
+                        favorite_count:         tweet.favorite_count,
+                        retweet_count:          tweet.retweet_count,
+                        followers_count:        tweet.user.followers_count,
+                        tweet_id:               0,
+                        tweet_id_str:           tweet.id_str,
+                        tweet_author:           tweet.user.screen_name
+                        }        
+                %{tweet: tweet, article: article}
+        end
         
         #####################################################################
         
@@ -287,10 +269,6 @@ defmodule Hue2.TweetInfo2 do
                                                 
                                                                 title = http.body |> Floki.find("meta[property='og:title']") |> Floki.attribute("content") |> List.first
                                                 
-                                                                IO.puts "title/"
-                                                                IO.puts title
-                                                                IO.puts "/title"
-                                                                
                                                                 cond do
                                                                         title != nil ->
                                                                         
