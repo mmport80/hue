@@ -6,16 +6,10 @@
                 <meta name="viewport" content="width=device-width, initial-scale=1">
                 <meta name="description" content="">
                 <meta name="author" content="">
-
-                <!--
-                <link href='https://fonts.googleapis.com/css?family=Germania+One' rel='stylesheet' type='text/css'>
-                <link href='https://fonts.googleapis.com/css?family=Nova+Round' rel='stylesheet' type='text/css'>
-                -->
+                
                 <link href='https://fonts.googleapis.com/css?family=Unica+One' rel='stylesheet' type='text/css'>
                 <link href='https://fonts.googleapis.com/css?family=Josefin+Slab' rel='stylesheet' type='text/css'>
-                <!--
-                <link href='https://fonts.googleapis.com/css?family=Gentium+Basic' rel='stylesheet' type='text/css'>
-                -->
+                
                 <title> Quant Casual </title>
                 <link rel="stylesheet" href="<%= static_path(@conn, "/css/app.css") %>">
         </head>
@@ -24,9 +18,9 @@
                 
                 <div id="header">
                         <br />
-                        <h1>
-                          Quant Casual
-                        </h1>
+                                <h1>
+                                        Quant Casual
+                                </h1>
                         <br /><br />
                 </div>
                 <p class="alert alert-info" role="alert"><%= get_flash(@conn, :info) %></p>
@@ -47,8 +41,10 @@
                 </div>
                 
                 
-                <!--
                 <script src="<%= static_path(@conn, "/js/app.js") %>"></script>
-                -->
+                <script>require("web/static/js/app").App.run()</script>
+                
+                
         </body>
+        
 </html>
