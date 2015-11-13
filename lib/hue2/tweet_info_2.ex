@@ -16,7 +16,7 @@ defmodule Hue2.TweetInfo2 do
                 |> less_than_a_day_old
                 |> remove_dupes
                 |> order
-                |> Enum.take(200)
+                |> Enum.take(10)
                 #sort desc
                 #more followers bad
                 #more faves & rtwts good
