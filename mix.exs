@@ -45,7 +45,9 @@ defmodule Hue2.Mixfile do
      {:timex, "~> 0.19"},
      {:timex_ecto, "~> 0.5"},
      
-     {:quantum, "~> 1.5"}
+     {:quantum, "~> 1.5"},
+
+     {:html_entities, "~> 0.2"}
    ]
   end
 

@@ -16,7 +16,7 @@ defmodule Hue2.TweetInfo2 do
                 |> less_than_a_day_old
                 |> remove_dupes
                 |> order
-                |> Enum.take(10)
+                |> Enum.take(200)
                 #sort desc
                 #more followers bad
                 #more faves & rtwts good
@@ -166,7 +166,7 @@ defmodule Hue2.TweetInfo2 do
                 article = %Article{ 
                         media_url:              nil, 
                         #remove trailing t.co url
-                        text:                   tweet.text, #String.split(tweet.text, [" https://t.co"," http://t.co"]) |> List.first,
+                        text:                   tweet.text,
                         expanded_url:           nil,
                         title:                  nil,
                         favorite_count:         tweet.favorite_count,
