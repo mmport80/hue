@@ -10,10 +10,11 @@ defmodule Hue2.TweetInfo2 do
         
         
         def get_articles() do
+                
                 Article 
-                |> select([c,_], c ) 
+                |> where([a], a.inserted_at > datetime_add(^Ecto.DateTime.utc, -1, "day") ) 
                 |> Hue2.Repo.all 
-                |> less_than_a_day_old
+                #|> less_than_a_day_old
                 |> remove_dupes
                 |> order
                 |> Enum.take(200)
@@ -254,7 +255,9 @@ defmodule Hue2.TweetInfo2 do
                                                         String.valid?(http.body) ->
                                                                 #gotta figure out how to do this better!!
                                                                 #maybe pipes???
-                                                
+                                                                
+                                                                IO.puts "http.body"
+                                                                IO.inspect http.body
                                                 
                                                                 media_url = http.body |> Floki.find("meta[property='og:image']") |> Floki.attribute("content") |> List.first
                                                 
