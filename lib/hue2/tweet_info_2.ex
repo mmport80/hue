@@ -255,30 +255,29 @@ defmodule Hue2.TweetInfo2 do
                                                         String.valid?(http.body) ->
                                                                 #gotta figure out how to do this better!!
                                                                 #maybe pipes???
-                                                                
-                                                                IO.puts "http.body"
-                                                                IO.inspect http.body
+                                                
                                                 
                                                                 media_url = http.body |> Floki.find("meta[property='og:image']") |> Floki.attribute("content") |> List.first
-                                                
+                                                                
                                                                 if media_url != nil do
                                                                         %Article{ article | media_url: media_url }
                                                                 end
-                                                
-                                                
+                                                                
+                                                                
                                                                 title = http.body |> Floki.find("meta[property='og:title']") |> Floki.attribute("content") |> List.first
-                                                
+                                
                                                                 if title != nil do
                                                                         %Article{ article | title: title }
                                                                 end
-                                                
-                                                
+                                
+                                
                                                                 description = http.body |> Floki.find("meta[property='og:description']") |> Floki.attribute("content") |> List.first
-                                                
+                                
                                                                 if description != nil do
                                                                         %Article{ article | text: description }
                                                                 end
-                                                                
+                                                            
+                                                                                    
                                                                 #return last value
                                                                 %{tweet: tweet, article: article}
                                                         #link to PDF / PPT etc                                                        

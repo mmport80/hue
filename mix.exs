@@ -40,7 +40,7 @@ defmodule Hue2.Mixfile do
      {:extwitter, "~> 0.5"}  ,
      {:oauth, github: "tim/erlang-oauth"},
      {:extwitter, "~> 0.5"} ,
-     {:floki, "~> 0.6"},
+     {:floki, "~> 0.7"},
      {:httpoison, "~> 0.8"},
      {:timex, "~> 0.19"},
      {:timex_ecto, "~> 0.5"},
