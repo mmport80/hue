@@ -2,49 +2,30 @@ defmodule Hue2.TweetInfo2 do
         alias Hue2.Repo
         alias Hue2.Article
 
-        import Timex
+        #import Timex
         import Ecto.Query
-        
         
         ##################################################################
         
-        
         def get_articles() do
-                
                 Article 
-                |> where([a], a.inserted_at > datetime_add(^Ecto.DateTime.utc, -1, "day") ) 
+                |> where(
+                        [a], 
+                        a.inserted_at > datetime_add(^Ecto.DateTime.utc, -1, "day")
+                        ) 
                 |> Hue2.Repo.all 
-                #|> less_than_a_day_old
-                |> remove_dupes
                 |> order
+                |> remove_dupes
                 |> Enum.take(200)
-                #sort desc
-                #more followers bad
-                #more faves & rtwts good
         end
         
         defp order(articles) do
                 articles
                 |> Enum.sort_by(
                         fn(article) ->
-                                 - (article.favorite_count + max(article.retweet_count - 1, 0) * 2.66) / article.followers_count
+                                 (article.favorite_count + max(article.retweet_count - 1, 0) * 2.66) / article.followers_count
                         end 
                 )
-        end
-        
-        
-        defp less_than_a_day_old(articles) do
-                articles
-                |> Enum.filter(
-                        fn(article) -> 
-                                Timex.Date.diff(
-                                        convert_ecto_to_timex(article.inserted_at),
-                                        Timex.Date.local(),
-                                        :days
-                                        )
-                                <= 1
-                        end
-                        )
         end
         
         defp remove_dupes(articles) do
@@ -69,15 +50,6 @@ defmodule Hue2.TweetInfo2 do
                 )
         end
         
-        #convert ecto date datetime to timex datetime
-        #find diff in days
-        
-        defp convert_ecto_to_timex(ecto_dt) do
-                #to tuple
-                {:ok, tuple_dt} = Ecto.DateTime.dump(ecto_dt)
-                Timex.Date.from(tuple_dt)
-        end
-        
         ##################################################################
         
         #run every 15 mins
@@ -90,6 +62,10 @@ defmodule Hue2.TweetInfo2 do
         #ends with storing an article object
         
         #every function accepts and returns an article object and a tweet
+        
+        #mark incomplete tweets:
+        #video tweets don't have videos
+        #multiple pic tweets only have one pic
         
         def store() do
                 ExTwitter.home_timeline([count: 200])
@@ -122,8 +98,6 @@ defmodule Hue2.TweetInfo2 do
                                         article
                                 end
                         )
-                        |> order
-                        #change to 10 for prod
                         |> Enum.take(200)
                         |> Enum.map(
                                 fn( article ) ->
@@ -144,14 +118,6 @@ defmodule Hue2.TweetInfo2 do
                 end
         end
         
-        defp order(articles) do
-                articles
-                |> Enum.sort_by(
-                        fn(article) ->
-                                 - (article.favorite_count + max(article.retweet_count - 1, 0) * 2.66) / article.followers_count
-                        end 
-                )
-        end
         
         #template
         #defp get_local_media_url( %{tweet: %ExTwitter.Model.Tweet{} = tweet, article: %Article{} = article} ) do
@@ -165,8 +131,7 @@ defmodule Hue2.TweetInfo2 do
                 IO.puts tweet.text
                 
                 article = %Article{ 
-                        media_url:              nil, 
-                        #remove trailing t.co url
+                        media_url:              nil,
                         text:                   tweet.text,
                         expanded_url:           nil,
                         title:                  nil,
@@ -253,28 +218,29 @@ defmodule Hue2.TweetInfo2 do
                                                 cond do
                                                         #in case link goes to a pdf or something
                                                         String.valid?(http.body) ->
-                                                                #gotta figure out how to do this better!!
-                                                                #maybe pipes???
+                                                                #gotta figure out how to do this better - maybe pipes???
+                                                
+                                                                
                                                 
                                                 
                                                                 media_url = http.body |> Floki.find("meta[property='og:image']") |> Floki.attribute("content") |> List.first
                                                                 
                                                                 if media_url != nil do
-                                                                        %Article{ article | media_url: media_url }
+                                                                        article = %Article{ article | media_url: media_url }
                                                                 end
                                                                 
                                                                 
                                                                 title = http.body |> Floki.find("meta[property='og:title']") |> Floki.attribute("content") |> List.first
                                 
                                                                 if title != nil do
-                                                                        %Article{ article | title: title }
+                                                                        article = %Article{ article | title: title }
                                                                 end
                                 
                                 
                                                                 description = http.body |> Floki.find("meta[property='og:description']") |> Floki.attribute("content") |> List.first
                                 
                                                                 if description != nil do
-                                                                        %Article{ article | text: description }
+                                                                        article = %Article{ article | text: description }
                                                                 end
                                                             
                                                                                     
