@@ -8,6 +8,8 @@ defmodule Hue2.TweetInfo2 do
         ##################################################################
         
         def get_articles() do
+                [number: n] = Application.get_env( :hue2, :settings )
+                
                 Article 
                 |> where(
                         [a], 
@@ -16,7 +18,7 @@ defmodule Hue2.TweetInfo2 do
                 |> Hue2.Repo.all 
                 |> order
                 |> remove_dupes
-                |> Enum.take(200)
+                |> Enum.take(n)
         end
         
         defp order(articles) do

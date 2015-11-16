@@ -18,8 +18,10 @@ defmodule Hue2.Mixfile do
   # Type `mix help compile.app` for more information.
   def application do
     [mod: {Hue2, []},
+     #env: [:number, 10],
      applications: [:phoenix, :phoenix_html, :cowboy, :logger,
-                    :phoenix_ecto, :postgrex, :httpoison, :tzdata, :quantum]]
+                    :phoenix_ecto, :postgrex, :httpoison, :tzdata, :quantum]
+    ]
   end
 
   # Specifies which paths to compile per environment.
