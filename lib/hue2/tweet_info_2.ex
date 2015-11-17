@@ -15,7 +15,13 @@ defmodule Hue2.TweetInfo2 do
                         [a], 
                         a.inserted_at > datetime_add(^Ecto.DateTime.utc, -1, "day")
                         ) 
-                |> Hue2.Repo.all 
+                |> Hue2.Repo.all
+                #filter out articles which have videos etc which we do not currently support
+                |> Enum.filter(
+                        fn(article) ->
+                                article.partial == false
+                        end
+                ) 
                 |> order
                 |> remove_dupes
                 |> Enum.take(n)
@@ -53,21 +59,8 @@ defmodule Hue2.TweetInfo2 do
         end
         
         ##################################################################
-        
-        #run every 15 mins
         #get and store article data
-        
-        #map thru array of tweets
-        #go thru each field of each tweet
-        #fill each depending on whether info is available
-        #
-        #ends with storing an article object
-        
         #every function accepts and returns an article object and a tweet
-        
-        #mark incomplete tweets:
-        #video tweets don't have videos
-        #multiple pic tweets only have one pic
         
         def store() do
                 ExTwitter.home_timeline([count: 200])
@@ -88,19 +81,12 @@ defmodule Hue2.TweetInfo2 do
                                         
                                 end                                                                      
                         )
-                        |> Enum.filter(
-                                fn( x ) ->
-                                        IO.inspect x
-                                        true
-                                end
-                        )
                         #return only the articles
                         |> Enum.map(
-                                fn( %{tweet: %ExTwitter.Model.Tweet{} = tweet, article: %Hue2.Article{} = article} ) ->
+                                fn( %{tweet: %ExTwitter.Model.Tweet{} = _, article: %Hue2.Article{} = article} ) ->
                                         article
                                 end
                         )
-                        |> Enum.take(200)
                         |> Enum.map(
                                 fn( article ) ->
                                         Repo.insert(article)
@@ -111,15 +97,16 @@ defmodule Hue2.TweetInfo2 do
         #recursively find original tweet
         defp get_quoted_or_rtwd_status?( %ExTwitter.Model.Tweet{} = tweet ) do
                 cond do
-                        tweet.retweeted_status == nil && tweet.quoted_status == nil ->
+                        tweet.retweeted_status == nil && tweet.quoted_status == nil && tweet.in_reply_to_status_id_str == nil ->
                                 tweet
-                        tweet.retweeted_status == nil ->
+                        tweet.quoted_status != nil ->
                                 tweet.quoted_status.id |> ExTwitter.show |> get_quoted_or_rtwd_status?
-                        true ->
+                        tweet.retweeted_status != nil ->
                                 tweet.retweeted_status.id |> ExTwitter.show |> get_quoted_or_rtwd_status?
+                        true ->
+                                tweet.in_reply_to_status_id_str |> ExTwitter.show |> get_quoted_or_rtwd_status?
                 end
         end
-        
         
         #template
         #defp get_local_media_url( %{tweet: %ExTwitter.Model.Tweet{} = tweet, article: %Article{} = article} ) do
@@ -140,7 +127,7 @@ defmodule Hue2.TweetInfo2 do
                         favorite_count:         tweet.favorite_count,
                         retweet_count:          tweet.retweet_count,
                         followers_count:        tweet.user.followers_count,
-                        tweet_id:               0,
+                        partial:                false,
                         tweet_id_str:           tweet.id_str,
                         tweet_author:           tweet.user.screen_name
                         }        
@@ -177,18 +164,39 @@ defmodule Hue2.TweetInfo2 do
                 vanilla_return = %{tweet: tweet, article: article}
                 cond do
                         #has media and has photos
-                        Map.has_key?(tweet.entities, :media) && Enum.any?( photos(tweet) ) ->
-                                %{ vanilla_return | article:  %Article{ article | media_url: first_photo(tweet).media_url } }
+                        Map.has_key?(tweet.entities, :media) ->
+                                cond do
+                                        #has video, tweet is partial (do not support video right now)
+                                        Enum.any?( videos(tweet) ) ->
+                                                %{ vanilla_return | article:  %Article{ article | partial: true } }
+                                        #has many photos, update partial - don't support multiple photo tweets
+                                        length photos(tweet) > 1 ->
+                                                %{ vanilla_return | article:  %Article{ article | partial: true } }
+                                        #has single photo
+                                        length photos(tweet) == 1 ->
+                                                %{ vanilla_return | article:  %Article{ article | media_url: first_photo(tweet).media_url } }
+                                        true ->
+                                                vanilla_return
+                                end
                         true ->
                                 vanilla_return
                 end
+        end
+        
+        defp videos(%ExTwitter.Model.Tweet{}=tweet) do
+                tweet.entities.media
+                        |> Enum.filter(
+                                fn(medium) ->
+                                        !String.match?(medium.media_url, ~r/ext_tw_video_thumb/)
+                                end
+                        )
         end
         
         defp photos(%ExTwitter.Model.Tweet{}=tweet) do
                 tweet.entities.media
                         |> Enum.filter(
                                 fn(medium) ->
-                                        medium.type == "photo" && !String.match?(medium.media_url, ~r/ext_tw_video_thumb/)
+                                        medium.type == "photo"
                                 end
                         )
         end
@@ -205,10 +213,21 @@ defmodule Hue2.TweetInfo2 do
                 
                 vanilla_return = %{tweet: tweet, article: article}
                 
+                bad_urls = [
+                        "http://tmblr.co/",
+                        "https://tmblr.co/"
+                        ]
+                
+                IO.puts "article.expanded_url"
+                IO.puts article.expanded_url
+                
+                
                 cond do
                         #tmblr causes hackney to crash...
-                        article.expanded_url == nil -> 
-                                vanilla_return
+                        article.expanded_url == nil
+                                #due to hackney bug
+                                || String.starts_with?(article.expanded_url, bad_urls) -> 
+                                        vanilla_return
                         true ->
                                 #spawn so that crashes won't bring everything down
                                 case HTTPoison.get(article.expanded_url, [], [ hackney: [follow_redirect: true] ]) do
@@ -223,8 +242,6 @@ defmodule Hue2.TweetInfo2 do
                                                                 #gotta figure out how to do this better - maybe pipes???
                                                 
                                                                 
-                                                
-                                                
                                                                 media_url = http.body |> Floki.find("meta[property='og:image']") |> Floki.attribute("content") |> List.first
                                                                 
                                                                 if media_url != nil do
@@ -254,12 +271,11 @@ defmodule Hue2.TweetInfo2 do
                                                 end
                                         _ ->
                                                 IO.puts "something else happened"
-                                                #IO.inspect 
                                                 vanilla_return
                                 end
                                   
                 end
-                
+
         end
         
         

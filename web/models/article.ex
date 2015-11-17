@@ -14,9 +14,10 @@ defmodule Hue2.Article do
                 field :expanded_url,        :string
                 field :title,               :string
                 field :description,         :string
-                field :tweet_id,        :integer
+                #field :tweet_id,           :integer
                 field :tweet_author,    :string
                 field :tweet_id_str,        :string
+                field :partial,        :boolean
 
                 timestamps
         end
