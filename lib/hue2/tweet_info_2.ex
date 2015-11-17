@@ -213,6 +213,7 @@ defmodule Hue2.TweetInfo2 do
                 
                 vanilla_return = %{tweet: tweet, article: article}
                 
+                #tmblr causes hackney to crash...
                 bad_urls = [
                         "http://tmblr.co/",
                         "https://tmblr.co/"
@@ -221,9 +222,7 @@ defmodule Hue2.TweetInfo2 do
                 IO.puts "article.expanded_url"
                 IO.puts article.expanded_url
                 
-                
                 cond do
-                        #tmblr causes hackney to crash...
                         article.expanded_url == nil
                                 #due to hackney bug
                                 || String.starts_with?(article.expanded_url, bad_urls) -> 
