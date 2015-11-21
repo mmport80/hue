@@ -63,7 +63,7 @@ defmodule Hue2.TweetInfo2 do
         #every function accepts and returns an article object and a tweet
         
         def store() do
-                ExTwitter.home_timeline([count: 200])
+                ExTwitter.home_timeline([count: 100])
                         #filters relevant tweets
                         #creates augmented article objects
                         |> Enum.map(
