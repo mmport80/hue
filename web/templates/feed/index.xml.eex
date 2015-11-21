@@ -22,7 +22,17 @@
                                 <% end %>
                                 
                                 <%= if article.media_url != nil && article.media_url != "" do %>
-                                        <enclosure url="<%= article.media_url %>" type="image" />
+                                        <image>
+                                                <url>
+                                                        <![CDATA[ <%= article.media_url %>]]>
+                                                </url>
+                                                <link>
+                                                        <![CDATA[ <%=  article.expanded_url %> ]]>
+                                                </link>
+                                                <title>
+                                                        <![CDATA[ <%=  article.title %> ]]>
+                                                </title>
+                                        </image>
                                 <% end %>
                                 
                                 
