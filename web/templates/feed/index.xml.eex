@@ -22,7 +22,7 @@
                                 <% end %>
                                 
                                 <%= if article.media_url != nil && article.media_url != "" do %>
-                                        <enclosure url="<%= article.media_url %>" type="image" />
+                                        <enclosure url="<%= HtmlEntities.decode(article.media_url) %>" type="image" />
                                 <% end %>
                                 
                                 
