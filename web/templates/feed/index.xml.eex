@@ -17,12 +17,12 @@
                                 </title>
                                 <%= if article.expanded_url != nil && article.expanded_url != "" do %>
                                         <link>
-                                                <%= article.expanded_url %>
+                                                <![CDATA[ <%=  article.expanded_url %> ]]>
                                         </link>
                                 <% end %>
                                 
                                 <%= if article.media_url != nil && article.media_url != "" do %>
-                                        <enclosure url="<%= HtmlEntities.decode(article.media_url) %>" type="image" />
+                                        <enclosure url="<%= article.media_url %>" type="image" />
                                 <% end %>
                                 
                                 
@@ -35,7 +35,7 @@
                                 </pubDate>
                                 <%= if article.expanded_url != nil && article.expanded_url != "" do %>
                                         <guid isPermaLink="true">
-                                                <%= article.expanded_url %>
+                                                <![CDATA[ <%= article.expanded_url %> ]]>
                                         </guid>
                                 <% end %>                       
                         </item>
