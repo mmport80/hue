@@ -8,7 +8,7 @@ defmodule Hue2.TweetInfo2 do
         ##################################################################
         
         def get_articles() do
-                [number: n] = Application.get_env( :hue2, :settings )
+                [show: n] = Application.get_env( :hue2, :settings )
                 
                 Article 
                 |> where(

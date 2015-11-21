@@ -15,7 +15,7 @@ defmodule Hue2.Router do
         end
         
         scope "/rss", Hue2 do
-           get "/", FeedController, :index
-         end
+                get "/", FeedController, :index
+        end
  
 end
