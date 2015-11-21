@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<rss version="2.0">  
+        <channel>
+                <title>
+                        Quant Casual
+                </title>
+                <description>
+                        Quant News Aggregation
+                </description>
+                <link>
+                        http://www.quantcasual.com
+                </link>
+                <%= for article <- @articles do %>
+                        <item>
+                                <title>
+                                        <![CDATA[ <%= article.title %>]]>
+                                </title>
+                                <%= if article.expanded_url != nil && article.expanded_url != "" do %>
+                                        <link>
+                                                <%= article.expanded_url %>
+                                        </link>
+                                <% end %>
+                                
+                                <%= if article.media_url != nil && article.media_url != "" do %>
+                                        <enclosure url="<%= article.media_url %>" type="image" />
+                                <% end %>
+                                
+                                
+                                
+                                <description>
+                                        <![CDATA[<%= HtmlEntities.decode(article.text) %>]]>
+                                </description>
+                                <pubDate>
+                                        <%= date_format(article)  %>
+                                </pubDate>
+                                <%= if article.expanded_url != nil && article.expanded_url != "" do %>
+                                        <guid isPermaLink="true">
+                                                <%= article.expanded_url %>
+                                        </guid>
+                                <% end %>                       
+                        </item>
+                <% end %>
+  </channel>
+</rss>  
