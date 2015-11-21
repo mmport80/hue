@@ -251,14 +251,14 @@ defmodule Hue2.TweetInfo2 do
                                                                 title = http.body |> Floki.find("meta[property='og:title']") |> Floki.attribute("content") |> List.first
                                 
                                                                 if title != nil do
-                                                                        article = %Article{ article | title: title }
+                                                                        article = %Article{ article | title: String.slice(title,0,255) }
                                                                 end
                                 
                                 
                                                                 description = http.body |> Floki.find("meta[property='og:description']") |> Floki.attribute("content") |> List.first
                                 
                                                                 if description != nil do
-                                                                        article = %Article{ article | text: description }
+                                                                        article = %Article{ article | text: String.slice(description,0,999) }
                                                                 end
                                                             
                                                                                     
