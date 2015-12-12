@@ -87,6 +87,12 @@ defmodule Hue2.TweetInfo2 do
                                         article
                                 end
                         )
+                        #only store tweets with a link
+                        |> Enum.filter(
+                                fn(article) ->
+                                        article.expanded_url != nil
+                                end
+                        )
                         |> Enum.map(
                                 fn( article ) ->
                                         Repo.insert(article)
