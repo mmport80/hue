@@ -174,6 +174,9 @@ defmodule Hue2.TweetInfo2 do
         
         defp get_local_media_url( %{tweet: %ExTwitter.Model.Tweet{} = tweet, article: %Article{} = article} ) do
                 vanilla_return = %{tweet: tweet, article: article}
+                
+                IO.inspect tweet
+                
                 cond do
                         #has media and has photos
                         Map.has_key?(tweet.entities, :media) ->
@@ -182,10 +185,10 @@ defmodule Hue2.TweetInfo2 do
                                         Enum.any?( videos(tweet) ) ->
                                                 %{ vanilla_return | article:  %Article{ article | partial: true } }
                                         #has many photos, update partial - don't support multiple photo tweets
-                                        length photos(tweet) > 1 ->
+                                        tweet |> photos |> length > 1 ->
                                                 %{ vanilla_return | article:  %Article{ article | partial: true } }
                                         #has single photo
-                                        length photos(tweet) == 1 ->
+                                        tweet |> photos |> length == 1 ->
                                                 %{ vanilla_return | article:  %Article{ article | media_url: first_photo(tweet).media_url } }
                                         true ->
                                                 vanilla_return
@@ -205,12 +208,15 @@ defmodule Hue2.TweetInfo2 do
         end
         
         defp photos(%ExTwitter.Model.Tweet{}=tweet) do
-                tweet.entities.media
+                ps = tweet.entities.media
                         |> Enum.filter(
                                 fn(medium) ->
                                         medium.type == "photo"
                                 end
                         )
+                IO.inspect ps
+                IO.inspect length(ps)
+                ps
         end
         
         defp first_photo(%ExTwitter.Model.Tweet{}=tweet) do
