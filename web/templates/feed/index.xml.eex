@@ -35,11 +35,10 @@
                                         </image>
                                 <% end %>
                                 
-                                
-                                
                                 <description>
                                         <![CDATA[<%= HtmlEntities.decode(article.text) %>]]>
                                 </description>
+                                
                                 <pubDate>
                                         <%= date_format(article)  %>
                                 </pubDate>

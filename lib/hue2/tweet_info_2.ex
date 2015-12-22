@@ -63,14 +63,14 @@ defmodule Hue2.TweetInfo2 do
         #every function accepts and returns an article object and a tweet
         
         def store() do
-                ExTwitter.home_timeline([count: 100])
+                ExTwitter.home_timeline([count: 10])
                         #filters relevant tweets
                         #creates augmented article objects
                         |> Enum.map(
                                 fn(tweet) ->
                                         #use original quoted or retweeted tweet if a quote or a retweet
-                                        get_quoted_or_rtwd_status?(tweet)
-                                        #init
+                                        get_quoted_or_rtwd_status?(tweet, 0)
+                                        #init - setup article object
                                         |> init
                                         #get external url
                                         |> get_expanded_url
@@ -78,7 +78,6 @@ defmodule Hue2.TweetInfo2 do
                                         |> get_local_media_url
                                         #pull everything from source website
                                         |> get_source_data
-                                        
                                 end                                                                      
                         )
                         #return only the articles
@@ -101,16 +100,24 @@ defmodule Hue2.TweetInfo2 do
         end
         
         #recursively find original tweet
-        defp get_quoted_or_rtwd_status?( %ExTwitter.Model.Tweet{} = tweet ) do
+        defp get_quoted_or_rtwd_status?( %ExTwitter.Model.Tweet{} = tweet, followers ) do
+                #add up followers, try to count up total tweet audience
                 cond do
                         tweet.retweeted_status == nil && tweet.quoted_status == nil && tweet.in_reply_to_status_id_str == nil ->
-                                tweet
+                                #update followers with total countable (approx) audience
+                                %{ tweet: tweet, current_followers: followers }
                         tweet.quoted_status != nil ->
-                                tweet.quoted_status.id |> ExTwitter.show |> get_quoted_or_rtwd_status?
+                                tweet.quoted_status.id
+                                |> ExTwitter.show
+                                |> get_quoted_or_rtwd_status?( followers + tweet.user.followers_count )
                         tweet.retweeted_status != nil ->
-                                tweet.retweeted_status.id |> ExTwitter.show |> get_quoted_or_rtwd_status?
+                                tweet.retweeted_status.id
+                                |> ExTwitter.show
+                                |> get_quoted_or_rtwd_status?( followers + tweet.user.followers_count )
                         true ->
-                                tweet.in_reply_to_status_id_str |> ExTwitter.show |> get_quoted_or_rtwd_status?
+                                tweet.in_reply_to_status_id_str
+                                |> ExTwitter.show
+                                |> get_quoted_or_rtwd_status?( followers + tweet.user.followers_count )
                 end
         end
         
@@ -121,9 +128,7 @@ defmodule Hue2.TweetInfo2 do
         
         #####################################################################
         
-        defp init( %ExTwitter.Model.Tweet{} = tweet ) do
-                
-                IO.puts tweet.text
+        defp init( %{ tweet: tweet, current_followers: current_followers } ) do
                 
                 article = %Article{ 
                         media_url:              nil,
@@ -132,7 +137,8 @@ defmodule Hue2.TweetInfo2 do
                         title:                  nil,
                         favorite_count:         tweet.favorite_count,
                         retweet_count:          tweet.retweet_count,
-                        followers_count:        tweet.user.followers_count,
+                        #total audience approximation
+                        followers_count:        tweet.user.followers_count + current_followers,
                         partial:                false,
                         tweet_id_str:           tweet.id_str,
                         tweet_author:           tweet.user.screen_name
