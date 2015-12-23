@@ -12,11 +12,23 @@ defmodule Hue2.TweetInfo2 do
         #store
         
         def retweet() do
+                htl = ExTwitter.user_timeline(count: 10)
+                        |> Enum.map(
+                                fn(t) -> t.retweeted_status.id_str 
+                                end)
+                
                 #get top ten
-                #twitter will block any retweet dupes
                 get_articles()
+                        |> Enum.filter(
+                                fn(a) -> 
+                                        #t not in hometimeline
+                                        Enum.member?(htl, a.tweet_id_str) == false
+                                end )
                         |> Enum.map(
                                 fn(a) ->
+                                        #twitter will block any retweet dupes
+                                        #IO.inspect a.tweet_id_str
+                                        #IO.inspect a.text
                                         ExTwitter.retweet( a.tweet_id_str )
                                 end )
         end
