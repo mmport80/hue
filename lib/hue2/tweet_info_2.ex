@@ -6,25 +6,43 @@ defmodule Hue2.TweetInfo2 do
         import Ecto.Query
         
         ##################################################################
+        ##################################################################
+        
+        #get articles
+        #store
+        
+        def retweet() do
+                #get top ten
+                #twitter will block any retweet dupes
+                get_articles()
+                        |> Enum.map(
+                                fn(a) ->
+                                        ExTwitter.retweet( a.tweet_id_str )
+                                end )
+        end
+        
+        
+        
+        ##################################################################
         
         def get_articles() do
                 [show: n] = Application.get_env( :hue2, :settings )
                 
                 Article 
-                |> where(
-                        [a], 
-                        a.inserted_at > datetime_add(^Ecto.DateTime.utc, -1, "day")
+                        |> where(
+                                [a], 
+                                a.inserted_at > datetime_add(^Ecto.DateTime.utc, -1, "day")
+                                ) 
+                        |> Hue2.Repo.all
+                        #filter out articles which have videos etc which we do not currently support
+                        |> Enum.filter(
+                                fn(article) ->
+                                        article.partial == false
+                                end
                         ) 
-                |> Hue2.Repo.all
-                #filter out articles which have videos etc which we do not currently support
-                |> Enum.filter(
-                        fn(article) ->
-                                article.partial == false
-                        end
-                ) 
-                |> order
-                |> remove_dupes
-                |> Enum.take(n)
+                        |> order
+                        |> remove_dupes
+                        |> Enum.take(n)
         end
         
         defp order(articles) do
