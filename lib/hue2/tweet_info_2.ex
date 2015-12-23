@@ -28,8 +28,10 @@ defmodule Hue2.TweetInfo2 do
                                                 Enum.member?(htl, a.tweet_id_str) ->
                                                         #do nothing
                                                         IO.puts "Already retweeted"
+                                                        IO.inspect a.tweet_id_str
                                                 true ->
                                                         IO.puts "Retweet"
+                                                        IO.inspect a.tweet_id_str
                                                         ExTwitter.retweet( a.tweet_id_str )
                                         end
                                 
