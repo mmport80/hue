@@ -12,7 +12,7 @@ defmodule Hue2.TweetInfo2 do
         #store
         
         def retweet() do
-                ts = ExTwitter.user_timeline(count: 10)#
+                ts = ExTwitter.user_timeline(count: 200)#
                         
                 IO.inspect ts |> length
                         
