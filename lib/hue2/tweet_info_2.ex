@@ -12,33 +12,28 @@ defmodule Hue2.TweetInfo2 do
         #store
         
         def retweet() do
-                ts = ExTwitter.user_timeline(count: 200)#
-                        
-                IO.inspect ts |> length
-                        
-                htl = ts |> Enum.map(
-                        #what happens if attribute doesn't exist
-                        fn(t) -> t.retweeted_status.id_str 
-                        end)
+                htl = ExTwitter.user_timeline(count: 200)
+                        |> Enum.filter(
+                                fn(t) -> t.retweeted_status != nil
+                                end)
+                        |> Enum.map(
+                                fn(t) -> t.retweeted_status.id_str 
+                                end)
                 
-                as = get_articles()
-                
-                IO.inspect as |> length
-                
-                #get top ten
-                as |> Enum.map(
-                        fn(a) ->
-                                cond do
-                                        #check whether article has already been retweeted
-                                        Enum.member?(htl, a.tweet_id_str) ->
-                                                #do nothing
-                                                IO.puts "Already retweeted"
-                                        true ->
-                                                IO.puts "Retweet"
-                                                ExTwitter.retweet( a.tweet_id_str )
-                                end
+                get_articles() |>
+                        Enum.map(
+                                fn(a) ->
+                                        cond do
+                                                #check whether article has already been retweeted
+                                                Enum.member?(htl, a.tweet_id_str) ->
+                                                        #do nothing
+                                                        IO.puts "Already retweeted"
+                                                true ->
+                                                        IO.puts "Retweet"
+                                                        ExTwitter.retweet( a.tweet_id_str )
+                                        end
                                 
-                        end )
+                                end )
         end
         
         
