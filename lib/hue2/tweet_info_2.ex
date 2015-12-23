@@ -31,6 +31,7 @@ defmodule Hue2.TweetInfo2 do
                                                         IO.inspect a.tweet_id_str
                                                 true ->
                                                         IO.puts "Retweet"
+                                                        IO.inspect a.text
                                                         IO.inspect a.tweet_id_str
                                                         ExTwitter.retweet( a.tweet_id_str )
                                         end
