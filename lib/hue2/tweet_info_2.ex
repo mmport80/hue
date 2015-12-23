@@ -63,7 +63,7 @@ defmodule Hue2.TweetInfo2 do
         #every function accepts and returns an article object and a tweet
         
         def store() do
-                ExTwitter.home_timeline([count: 100])
+                ExTwitter.home_timeline([count: 7])
                         #filters relevant tweets
                         #creates augmented article objects
                         |> Enum.map(
@@ -234,7 +234,8 @@ defmodule Hue2.TweetInfo2 do
                 #tmblr causes hackney to crash...
                 bad_urls = [
                         "http://tmblr.co/",
-                        "https://tmblr.co/"
+                        "https://tmblr.co/",
+                        "http://bit.ly/1QW182g"
                         ]
                 
                 IO.puts "article.expanded_url"
@@ -258,13 +259,11 @@ defmodule Hue2.TweetInfo2 do
                                                         String.valid?(http.body) ->
                                                                 #gotta figure out how to do this better - maybe pipes???
                                                 
-                                                                
                                                                 media_url = http.body |> Floki.find("meta[property='og:image']") |> Floki.attribute("content") |> List.first
                                                                 
                                                                 if media_url != nil do
                                                                         article = %Article{ article | media_url: media_url }
                                                                 end
-                                                                
                                                                 
                                                                 title = http.body |> Floki.find("meta[property='og:title']") |> Floki.attribute("content") |> List.first
                                 
@@ -272,13 +271,11 @@ defmodule Hue2.TweetInfo2 do
                                                                         article = %Article{ article | title: String.slice(title,0,255) }
                                                                 end
                                 
-                                
                                                                 description = http.body |> Floki.find("meta[property='og:description']") |> Floki.attribute("content") |> List.first
                                 
                                                                 if description != nil do
                                                                         article = %Article{ article | text: String.slice(description,0,999) }
                                                                 end
-                                                            
                                                                                     
                                                                 #return last value
                                                                 %{tweet: tweet, article: article}
