@@ -67,7 +67,7 @@ defmodule Hue2.TweetInfo2 do
                 articles
                 |> Enum.sort_by(
                         fn(article) ->
-                                 (article.favorite_count + max(article.retweet_count - 1, 0) * 2.66) / article.followers_count
+                                 (max(article.favorite_count - 1, 0) + max(article.retweet_count - 1, 0) * 2.66) / article.followers_count
                         end 
                 )
         end
