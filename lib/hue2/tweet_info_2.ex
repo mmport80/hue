@@ -21,25 +21,49 @@ defmodule Hue2.TweetInfo2 do
                                 end)
                 
                 get_articles() |>
-                        Enum.map(
-                                fn(a) ->
+                        #map with index or reduce
+                        Enum.reduce(
+                                0,
+                                fn(a, acc) ->
                                         cond do
                                                 #check whether article has already been retweeted
                                                 Enum.member?(htl, a.tweet_id_str) ->
                                                         #do nothing
                                                         IO.puts "Already retweeted"
                                                         IO.inspect a.tweet_id_str
+                                                        
+                                                        acc + 1
                                                 true ->
                                                         IO.puts "Retweet"
                                                         IO.inspect a.text
                                                         IO.inspect a.tweet_id_str
-                                                        ExTwitter.retweet( a.tweet_id_str )
+                                                        
+                                                        #tweet so many stars / top daily pick
+                                                        #append add link to orig tweet
+                                                        origTweetLink = "https://twitter.com/" <> a.tweet_author <> "/status/" <> a.tweet_id_str
+                                                        
+                                                        star = <<11088 :: utf8>>
+                                                        
+                                                        #rate posts by stars etc
+                                                        cond do
+                                                                acc > 6 ->
+                                                                        rating = star
+                                                                acc > 3 ->
+                                                                        rating = star <> star
+                                                                acc > 0 ->
+                                                                        rating = star <> star <> star
+                                                                true ->
+                                                                        rating = "Top Daily Pick"
+                                                        end
+                                                        
+                                                        #tweet rating and link to original tweet
+                                                        ExTwitter.update(rating + " " + origTweetLink)
+                                                        
+                                                        acc + 1
                                         end
-                                
                                 end )
+                                |> Enum.reverse()
         end
-        
-        
         
         ##################################################################
         
@@ -67,7 +91,7 @@ defmodule Hue2.TweetInfo2 do
                 articles
                 |> Enum.sort_by(
                         fn(article) ->
-                                 (max(article.favorite_count - 1, 0) + max(article.retweet_count - 1, 0) * 2.66) / article.followers_count
+                                 100000 * ( max(article.favorite_count - 1, 0) + max(article.retweet_count - 1, 0) * 2.66 ) / article.followers_count
                         end 
                 )
         end
@@ -82,11 +106,11 @@ defmodule Hue2.TweetInfo2 do
                                         acc
                                         |> Enum.filter(
                                                 fn(a) ->
-                                                        (a.tweet_id_str == article.tweet_id_str)
-                                                        || (a.text == article.text)
-                                                end        
-                                        ) == [] ->
-                                                [article|acc]
+                                                        #id or text is the same...
+                                                        (a.tweet_id_str == article.tweet_id_str) || (a.text == article.text)
+                                                #if end up with nothing
+                                                end ) == [] ->
+                                                        [article|acc]
                                         true ->
                                                 acc
                                 end
