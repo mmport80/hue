@@ -53,16 +53,16 @@ defmodule Hue2.TweetInfo2 do
                                                                 acc > 0 ->
                                                                         rating = star <> star <> star
                                                                 true ->
-                                                                        rating = "Top Daily Pick"
+                                                                        rating = "~Top Daily Pick~"
                                                         end
                                                         
                                                         #tweet rating and link to original tweet
-                                                        ExTwitter.update(rating + " " + origTweetLink)
+                                                        ExTwitter.update(rating <> " " <> origTweetLink)
                                                         
                                                         acc + 1
                                         end
                                 end )
-                                |> Enum.reverse()
+                                #|> Enum.reverse()
         end
         
         ##################################################################

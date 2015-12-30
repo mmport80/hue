@@ -6,8 +6,6 @@
                                 <%= article.title %>
                         </h2>                
                 </a>   
-                
-                     
                 <%= if article.media_url != nil && article.media_url != "" do %>
                         <img src='<%= article.media_url %>' />
                 <% end %>
@@ -15,20 +13,6 @@
                 <p>
                         {<a href="https://www.twitter.com/<%= article.tweet_author %>/status/<%= article.tweet_id_str %>" target='_blank' > <%= article.tweet_author %></a>}
                 </p>
-
-                <p>
-                        fave <%= article.favorite_count %>
-                </p>
-                <p>
-                        followers <%= article.followers_count %>
-                </p>
-                <p>
-                        rtwt <%= article.retweet_count %>
-                </p>
-                <p>     
-                        rating <%= 1000 * ( max(article.favorite_count-1,0) + max(article.retweet_count-1,0) * 2.33 ) / article.followers_count %>
-                </p>
-                
                 <hr />
         <% end %>
 </div>
