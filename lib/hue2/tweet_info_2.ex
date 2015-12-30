@@ -14,10 +14,10 @@ defmodule Hue2.TweetInfo2 do
         def retweet() do
                 htl = ExTwitter.user_timeline(count: 200)
                         |> Enum.filter(
-                                fn(t) -> t.retweeted_status != nil
+                                fn(t) -> t.quoted_status != nil
                                 end)
                         |> Enum.map(
-                                fn(t) -> t.retweeted_status.id_str 
+                                fn(t) -> t.quoted_status.id_str 
                                 end)
                 
                 get_articles() |>
@@ -62,7 +62,6 @@ defmodule Hue2.TweetInfo2 do
                                                         acc + 1
                                         end
                                 end )
-                                #|> Enum.reverse()
         end
         
         ##################################################################
