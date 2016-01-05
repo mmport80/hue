@@ -12,7 +12,7 @@ defmodule Hue2.TweetInfo2 do
         #store
         
         def retweet() do
-                htl = ExTwitter.user_timeline(count: 200)
+                htl = ExTwitter.user_timeline(count: 7)
                         |> Enum.filter(
                                 fn(t) -> t.quoted_status != nil
                                 end)
@@ -56,13 +56,39 @@ defmodule Hue2.TweetInfo2 do
                                                                         rating = "~Top Daily Pick~"
                                                         end
                                                         
+                                                        IO.inspect a.referrers
+                                                        
+                                                        #reduce referrers int "\nh/t @xoxo, @yoyo"
+                                                        referrers = referrer_string(a.referrers)
+                                                        
                                                         #tweet rating and link to original tweet
-                                                        ExTwitter.update(rating <> " " <> origTweetLink)
+                                                        ExTwitter.update(rating <> " " <> origTweetLink <> referrers)
                                                         
                                                         acc + 1
                                         end
                                 end )
         end
+        
+        def referrer_string(referrers) do
+                cond do
+                        referrers != [] && referrers != nil ->
+                                k = referrers
+                                        |> Enum.map(
+                                                fn(referrer) ->
+                                                        "@" <> referrer
+                                                end
+                                        )
+                                        |> Enum.reduce(
+                                                fn(referrer, acc) ->
+                                                        acc <> ", " <> referrer
+                                                end
+                                        )
+                                "\nh/t " <> k
+                         true ->
+                                ""
+                end
+        end
+        
         
         ##################################################################
         
@@ -122,13 +148,13 @@ defmodule Hue2.TweetInfo2 do
         #every function accepts and returns an article object and a tweet
         
         def store() do
-                ExTwitter.home_timeline([count: 7])
+                ExTwitter.home_timeline([count: 20])
                         #filters relevant tweets
                         #creates augmented article objects
                         |> Enum.map(
                                 fn(tweet) ->
                                         #use original quoted or retweeted tweet if a quote or a retweet
-                                        get_quoted_or_rtwd_status?(tweet, 0)
+                                        get_quoted_or_rtwd_status?(tweet, 0, [])
                                         #init - setup article object
                                         |> init
                                         #get external url
@@ -159,24 +185,25 @@ defmodule Hue2.TweetInfo2 do
         end
         
         #recursively find original tweet
-        defp get_quoted_or_rtwd_status?( %ExTwitter.Model.Tweet{} = tweet, followers ) do
+        defp get_quoted_or_rtwd_status?( %ExTwitter.Model.Tweet{} = tweet, followers, referrers ) do
                 #add up followers, try to count up total tweet audience
+                #collect user names along the way for H/Ts 
                 cond do
                         tweet.retweeted_status == nil && tweet.quoted_status == nil && tweet.in_reply_to_status_id_str == nil ->
                                 #update followers with total countable (approx) audience
-                                %{ tweet: tweet, current_followers: followers }
+                                %{ tweet: tweet, current_followers: followers, referrers: Enum.uniq(referrers) }
                         tweet.quoted_status != nil ->
                                 tweet.quoted_status.id
                                 |> ExTwitter.show
-                                |> get_quoted_or_rtwd_status?( followers + tweet.user.followers_count )
+                                |> get_quoted_or_rtwd_status?( followers + tweet.user.followers_count, [ tweet.user.screen_name | referrers ] )
                         tweet.retweeted_status != nil ->
                                 tweet.retweeted_status.id
                                 |> ExTwitter.show
-                                |> get_quoted_or_rtwd_status?( followers + tweet.user.followers_count )
+                                |> get_quoted_or_rtwd_status?( followers + tweet.user.followers_count, [ tweet.user.screen_name | referrers ] )
                         true ->
                                 tweet.in_reply_to_status_id_str
                                 |> ExTwitter.show
-                                |> get_quoted_or_rtwd_status?( followers + tweet.user.followers_count )
+                                |> get_quoted_or_rtwd_status?( followers + tweet.user.followers_count, [ tweet.user.screen_name | referrers ] )
                 end
         end
         
@@ -187,7 +214,12 @@ defmodule Hue2.TweetInfo2 do
         
         #####################################################################
         
-        defp init( %{ tweet: tweet, current_followers: current_followers } ) do
+        defp init( %{ tweet: tweet, current_followers: current_followers, referrers: referrers  } ) do
+                
+                #take array of refers
+                #insert array into hters table
+                #
+                
                 
                 article = %Article{ 
                         media_url:              nil,
@@ -200,7 +232,8 @@ defmodule Hue2.TweetInfo2 do
                         followers_count:        tweet.user.followers_count + current_followers,
                         partial:                false,
                         tweet_id_str:           tweet.id_str,
-                        tweet_author:           tweet.user.screen_name
+                        tweet_author:           tweet.user.screen_name,
+                        referrers:              referrers
                         }        
                 %{tweet: tweet, article: article}
         end

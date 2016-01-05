@@ -16,8 +16,10 @@ defmodule Hue2.Article do
                 field :description,         :string
                 #field :tweet_id,           :integer
                 field :tweet_author,    :string
-                field :tweet_id_str,        :string
-                field :partial,        :boolean
+                field :tweet_id_str,    :string
+                field :partial,         :boolean
+
+                field :referrers,        {:array, :string}
 
                 timestamps
         end
