@@ -12,7 +12,7 @@ defmodule Hue2.TweetInfo2 do
         #store
         
         def retweet() do
-                htl = ExTwitter.user_timeline(count: 7)
+                htl = ExTwitter.user_timeline(count: 200)
                         |> Enum.filter(
                                 fn(t) -> t.quoted_status != nil
                                 end)
