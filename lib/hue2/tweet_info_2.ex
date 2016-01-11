@@ -32,15 +32,8 @@ defmodule Hue2.TweetInfo2 do
                                                 #check whether article has already been retweeted
                                                 Enum.member?(htl, a.tweet_id_str) ->
                                                         #do nothing
-                                                        IO.puts "Already retweeted"
-                                                        IO.inspect a.tweet_id_str
-                                                        
                                                         acc + 1
                                                 true ->
-                                                        IO.puts "Retweet"
-                                                        IO.inspect a.text
-                                                        IO.inspect a.tweet_id_str
-                                                        
                                                         #tweet so many stars / top daily pick
                                                         #append add link to orig tweet
                                                         origTweetLink = "https://twitter.com/" <> a.tweet_author <> "/status/" <> a.tweet_id_str
@@ -156,14 +149,23 @@ defmodule Hue2.TweetInfo2 do
         
         def store() do
                 #increase and reduce frequency -> hopefully avoid crashing bringing everything down...
-                ExTwitter.home_timeline([count: 200])
-                        #filters relevant tweets
-                        #creates augmented article objects
+                ExTwitter.home_timeline([count: 7])
+                        #recursively find relevant tweets if need be
                         |> Stream.map(
                                 fn(tweet) ->
                                         #use original quoted or retweeted tweet if a quote or a retweet
-                                        get_quoted_or_rtwd_status?(tweet, 0, [])
-                                        #init - setup article object
+                                        get_quoted_or_rtwd_status?(tweet, 0, [])               
+                        end )
+                        #filter out tweets with zero faves & retweets
+                        |> Stream.filter(
+                                fn( %{ tweet: tweet, current_followers: _, referrers: _  } ) ->
+                                        tweet.favorite_count > 0 || tweet.retweet_count > 0
+                        end )
+                        #map / setup
+                        #creates augmented article objects
+                        |> Stream.map(
+                                fn(tweet) ->
+                                        tweet
                                         |> init
                                         #get external url
                                         |> get_expanded_url
@@ -171,28 +173,22 @@ defmodule Hue2.TweetInfo2 do
                                         |> get_local_media_url
                                         #pull everything from source website
                                         |> get_source_data
-                                end                                                                      
-                        )
+                        end )
                         #return only the articles
                         |> Stream.map(
                                 fn( %{tweet: %ExTwitter.Model.Tweet{} = _, article: %Hue2.Article{} = article} ) ->
                                         article
-                                end
-                        )
+                        end )
                         #only store tweets with a link
                         |> Stream.filter(
                                 fn(article) ->
                                         article.expanded_url != nil
-                                end
-                        )
-                        #convert stream to list
-                        |> Enum.to_list
+                        end )
                         #update db
                         |> Enum.map(
                                 fn( article ) ->
                                         Repo.insert(article)
-                                end
-                        )
+                        end )
         end
         
         #recursively find original tweet
@@ -226,7 +222,6 @@ defmodule Hue2.TweetInfo2 do
         #####################################################################
         
         defp init( %{ tweet: tweet, current_followers: current_followers, referrers: referrers  } ) do
-                
                 #take array of refers
                 #insert array into hters table
                 #
@@ -275,9 +270,7 @@ defmodule Hue2.TweetInfo2 do
         
         defp get_local_media_url( %{tweet: %ExTwitter.Model.Tweet{} = tweet, article: %Article{} = article} ) do
                 vanilla_return = %{tweet: tweet, article: article}
-                
-                IO.inspect tweet
-                
+                #IO.inspect tweet
                 cond do
                         #has media and has photos
                         Map.has_key?(tweet.entities, :media) ->
@@ -315,8 +308,8 @@ defmodule Hue2.TweetInfo2 do
                                         medium.type == "photo"
                                 end
                         )
-                IO.inspect ps
-                IO.inspect length(ps)
+                #IO.inspect ps
+                #IO.inspect length(ps)
                 ps
         end
         
@@ -339,8 +332,8 @@ defmodule Hue2.TweetInfo2 do
                         "http://bit.ly/1QW182g"
                         ]
                 
-                IO.puts "article.expanded_url"
-                IO.puts article.expanded_url
+                #IO.puts "article.expanded_url"
+                #IO.puts article.expanded_url
                 
                 cond do
                         article.expanded_url == nil
