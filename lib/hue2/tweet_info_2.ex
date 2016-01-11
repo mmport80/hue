@@ -68,7 +68,7 @@ defmodule Hue2.TweetInfo2 do
                                                         referrers = referrer_string(a.referrers)
                                                         
                                                         #tweet rating and link to original tweet
-                                                        ExTwitter.update(rating <> "\n\n" <> referrers  <> origTweetLink)
+                                                        ExTwitter.update(rating <> "\n\n\n" <> referrers  <> origTweetLink)
                                                         
                                                         acc + 1
                                         end
@@ -101,6 +101,7 @@ defmodule Hue2.TweetInfo2 do
         def get_articles() do
                 [show: n] = Application.get_env( :hue2, :settings )
                 
+                #sql query
                 Article 
                         |> where(
                                 [a], 
@@ -154,10 +155,11 @@ defmodule Hue2.TweetInfo2 do
         #every function accepts and returns an article object and a tweet
         
         def store() do
-                ExTwitter.home_timeline([count: 7])
+                #increase and reduce frequency -> hopefully avoid crashing bringing everything down...
+                ExTwitter.home_timeline([count: 200])
                         #filters relevant tweets
                         #creates augmented article objects
-                        |> Enum.map(
+                        |> Stream.map(
                                 fn(tweet) ->
                                         #use original quoted or retweeted tweet if a quote or a retweet
                                         get_quoted_or_rtwd_status?(tweet, 0, [])
@@ -172,17 +174,20 @@ defmodule Hue2.TweetInfo2 do
                                 end                                                                      
                         )
                         #return only the articles
-                        |> Enum.map(
+                        |> Stream.map(
                                 fn( %{tweet: %ExTwitter.Model.Tweet{} = _, article: %Hue2.Article{} = article} ) ->
                                         article
                                 end
                         )
                         #only store tweets with a link
-                        |> Enum.filter(
+                        |> Stream.filter(
                                 fn(article) ->
                                         article.expanded_url != nil
                                 end
                         )
+                        #convert stream to list
+                        |> Enum.to_list
+                        #update db
                         |> Enum.map(
                                 fn( article ) ->
                                         Repo.insert(article)
@@ -225,8 +230,6 @@ defmodule Hue2.TweetInfo2 do
                 #take array of refers
                 #insert array into hters table
                 #
-                
-                
                 article = %Article{ 
                         media_url:              nil,
                         text:                   tweet.text,
