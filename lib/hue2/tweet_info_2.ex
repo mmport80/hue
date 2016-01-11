@@ -12,6 +12,7 @@ defmodule Hue2.TweetInfo2 do
         #store
         
         def retweet() do
+                #what's already been tweeted
                 htl = ExTwitter.user_timeline(count: 200)
                         |> Enum.filter(
                                 fn(t) -> t.quoted_status != nil
@@ -21,6 +22,8 @@ defmodule Hue2.TweetInfo2 do
                                 end)
                 
                 get_articles() |>
+                        Enum.take(1)
+                        |> 
                         #map with index or reduce
                         Enum.reduce(
                                 0,
@@ -42,19 +45,22 @@ defmodule Hue2.TweetInfo2 do
                                                         #append add link to orig tweet
                                                         origTweetLink = "https://twitter.com/" <> a.tweet_author <> "/status/" <> a.tweet_id_str
                                                         
+                                                        #star emoticon in binary
                                                         star = <<11088 :: utf8>>
                                                         
                                                         #rate posts by stars etc
-                                                        cond do
-                                                                acc > 6 ->
-                                                                        rating = star
-                                                                acc > 3 ->
-                                                                        rating = star <> star
-                                                                acc > 0 ->
-                                                                        rating = star <> star <> star
-                                                                true ->
-                                                                        rating = "~Top Daily Pick~"
-                                                        end
+                                                        
+                                                        rating = 
+                                                                cond do
+                                                                        acc > 6 ->
+                                                                                star
+                                                                        acc > 3 ->
+                                                                                star <> star
+                                                                        acc > 0 ->
+                                                                                star <> star <> star
+                                                                        true ->
+                                                                                "~Top Daily Pick~"
+                                                                end
                                                         
                                                         IO.inspect a.referrers
                                                         
@@ -62,7 +68,7 @@ defmodule Hue2.TweetInfo2 do
                                                         referrers = referrer_string(a.referrers)
                                                         
                                                         #tweet rating and link to original tweet
-                                                        ExTwitter.update(rating <> " " <> origTweetLink <> referrers)
+                                                        ExTwitter.update(rating <> "\n\n" <> referrers  <> origTweetLink)
                                                         
                                                         acc + 1
                                         end
@@ -72,7 +78,7 @@ defmodule Hue2.TweetInfo2 do
         def referrer_string(referrers) do
                 cond do
                         referrers != [] && referrers != nil ->
-                                k = referrers
+                                referrer_string = referrers
                                         |> Enum.map(
                                                 fn(referrer) ->
                                                         "@" <> referrer
@@ -80,10 +86,10 @@ defmodule Hue2.TweetInfo2 do
                                         )
                                         |> Enum.reduce(
                                                 fn(referrer, acc) ->
-                                                        acc <> ", " <> referrer
+                                                        acc <> "\n\n"  <> referrer
                                                 end
                                         )
-                                "\nh/t " <> k
+                                "\nh/t" <> referrer_string
                          true ->
                                 ""
                 end
