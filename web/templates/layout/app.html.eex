@@ -32,6 +32,11 @@
 
         <body>
                 
+                <div>
+                        <p style="font-size: 1em">
+                                <a href="https://www.twitter.com/huebrent1">Twitter</a> / <a href="http://www.quantcasual.com/rss">RSS</a>
+                        </p>
+                <div>
                 <div id="header">
                         <br />
                                 <h1>Quant Casual</h1>
@@ -45,9 +50,7 @@
                 <div id="footer">
                         <br />
                         <div id="details">
-                                
-                                  <p>Advertise / <a href="https://www.twitter.com/huebrent1">Twitter</a> 
-                                  / <a href="http://www.quantcasual.com/rss">RSS</a>
+                                  <p>Advertise
                                   / by <a href="http://blog.johnorford.com">John Orford</a> 
                                   / (c)2015 </p>
                                 

@@ -4,13 +4,17 @@ img{
         }
 p {
         font-size:2.5em;
-        
-        } 
+
+        -webkit-hyphens: auto;
+        -ms-hyphens: auto;
+        hyphens: auto;
+        }
+        /*
 #articles{
         margin-left: 5%;
-        margin-right: 5%;
-        
+        margin-right: 5%;      
         }
+*/
 h1 {
         font-size:10em;
         font-family: 'Unica One', cursive;
@@ -22,6 +26,10 @@ h2 {
         font-size:4em;
         color: #5C4F79;
         font-family: 'Josefin Slab', serif;
+        -webkit-hyphens: auto;
+        -ms-hyphens: auto;
+        hyphens: auto;
+        
         }        
 #header{
         width: 100%;
@@ -49,7 +57,6 @@ a{
         
 hr{
         color: #5C4F79;
-        
         }
         
 
