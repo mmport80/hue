@@ -32,11 +32,11 @@
 
         <body>
                 
-                <div>
-                        <p style="font-size: 1em">
+                <div class="social" style="display: block;font-size: 1em; ">
+                        <p style="text-align: right; margin: 0;">
                                 <a href="https://www.twitter.com/huebrent1">Twitter</a> / <a href="http://www.quantcasual.com/rss">RSS</a>
                         </p>
-                <div>
+                </div>
                 <div id="header">
                         <br />
                                 <h1>Quant Casual</h1>
@@ -48,14 +48,12 @@
                 <%= @inner %>
                 
                 <div id="footer">
-                        <br />
-                        <div id="details">
-                                  <p>Advertise
-                                  / by <a href="http://blog.johnorford.com">John Orford</a> 
-                                  / (c)2015 </p>
+                        <span id="details" style="text-align: center">
+                                  <p>
+                                        Advertise / by <a href="http://blog.johnorford.com">John Orford</a> / (c)2015
+                                  </p>
                                 
-                        </div>
-                        <br /><br /><br />
+                        </span>
                 </div>
                 
                 

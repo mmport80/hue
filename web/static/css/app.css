@@ -1,3 +1,17 @@
+@media (max-width: 599px) {
+    body {
+        font-size:0.65em;
+    }
+  }
+
+
+
+body{
+        margin: 0%;
+        color: #536C8D;
+        font-family: Georgia, Serif;
+        font-weight: lighter;
+        }
 img{
         max-height: 80%;
         max-width: 80%;
@@ -15,6 +29,9 @@ p {
         margin-right: 5%;      
         }
 */
+.social{
+        font-size:2.5em;        
+        }
 h1 {
         font-size:10em;
         font-family: 'Unica One', cursive;
@@ -44,17 +61,9 @@ h2 {
         margin-left: 5%;
         margin-right: 5%;
         }
-body{
-        margin: 0%;
-        color: #536C8D;
-        font-family: Georgia, Serif;
-        font-weight: lighter;
-        }
-        
 a{
         color: #4F8B89;
         }
-        
 hr{
         color: #5C4F79;
         }

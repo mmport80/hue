@@ -82,7 +82,7 @@ defmodule Hue2.TweetInfo2 do
                                                         acc <> "\n\n"  <> referrer
                                                 end
                                         )
-                                "\nh/t" <> referrer_string
+                                "h/t" <> referrer_string
                          true ->
                                 ""
                 end
@@ -159,7 +159,7 @@ defmodule Hue2.TweetInfo2 do
                         #filter out tweets with zero faves & retweets
                         |> Stream.filter(
                                 fn( %{ tweet: tweet, current_followers: _, referrers: _  } ) ->
-                                        tweet.favorite_count > 0 || tweet.retweet_count > 0
+                                        tweet.favorite_count > 1 || tweet.retweet_count > 1
                         end )
                         #map / setup
                         #creates augmented article objects
