@@ -2,8 +2,20 @@
         body {
                 font-size:0.65em;
                 }
+        /*
+        p {
+                -webkit-hyphens: auto;
+                -ms-hyphens: auto;
+                hyphens: auto;
+                }
+        h2 {
+                -webkit-hyphens: auto;
+                -ms-hyphens: auto;
+                hyphens: auto;
+                }
+        */
+                
 }
-
 body{
         margin: 0%;
         color: #536C8D;
@@ -16,18 +28,7 @@ img{
         }
 p {
         font-size:2.5em;
-        /*
-        -webkit-hyphens: auto;
-        -ms-hyphens: auto;
-        hyphens: auto;
-        */
         }
-        /*
-#articles{
-        margin-left: 5%;
-        margin-right: 5%;      
-        }
-*/
 .social{
         font-size:2.5em;      
         color: #4F8B89;
@@ -44,11 +45,6 @@ h2 {
         font-size:4em;
         color: #5C4F79;
         font-family: 'Josefin Slab', serif;
-        /*
-        -webkit-hyphens: auto;
-        -ms-hyphens: auto;
-        hyphens: auto;
-        */
         }        
 #header{
         width: 100%;
