@@ -22,8 +22,8 @@ defmodule Hue2.TweetInfo2 do
                                 end)
                 
                 get_articles() |>
-                        Enum.take(1)
-                        |> 
+                        #Enum.take(1)
+                        #|> 
                         #map with index or reduce
                         Enum.reduce(
                                 0,
