@@ -88,7 +88,7 @@ defmodule Hue2.TweetInfo2 do
                                                         acc <> ", "  <> referrer
                                                 end
                                         )
-                                "h/t " <> referrer_string
+                                "\n\nh/t " <> referrer_string
                          true ->
                                 ""
                 end
