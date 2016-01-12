@@ -63,9 +63,9 @@ defmodule Hue2.TweetInfo2 do
                                                         s = rating <> " " <> referrers <> " " <> origTweetLink
                                                         
                                                         #tweet rating and link to original tweet
-                                                        #ExTwitter.update(s)
+                                                        ExTwitter.update(s)
                                                         
-                                                        IO.inspect s
+                                                        #IO.inspect s
                                                         
                                                         acc + 1
                                         end
@@ -76,11 +76,13 @@ defmodule Hue2.TweetInfo2 do
                 cond do
                         referrers != [] && referrers != nil ->
                                 referrer_string = referrers
+                                        #add @s
                                         |> Enum.map(
                                                 fn(referrer) ->
                                                         "@" <> referrer
                                                 end
                                         )
+                                        #concatenate with ,s
                                         |> Enum.reduce(
                                                 fn(referrer, acc) ->
                                                         acc <> ", "  <> referrer
