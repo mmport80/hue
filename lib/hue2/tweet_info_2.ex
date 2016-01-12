@@ -60,8 +60,12 @@ defmodule Hue2.TweetInfo2 do
                                                         #reduce referrers int "\nh/t @xoxo, @yoyo"
                                                         referrers = referrer_string(a.referrers)
                                                         
+                                                        s = rating <> " " <> referrers <> " " <> origTweetLink
+                                                        
                                                         #tweet rating and link to original tweet
-                                                        ExTwitter.update(rating <> "\n\n\n" <> referrers  <> origTweetLink)
+                                                        #ExTwitter.update(s)
+                                                        
+                                                        IO.inspect s
                                                         
                                                         acc + 1
                                         end
@@ -79,10 +83,10 @@ defmodule Hue2.TweetInfo2 do
                                         )
                                         |> Enum.reduce(
                                                 fn(referrer, acc) ->
-                                                        acc <> "\n\n"  <> referrer
+                                                        acc <> ", "  <> referrer
                                                 end
                                         )
-                                "h/t" <> referrer_string
+                                "h/t " <> referrer_string
                          true ->
                                 ""
                 end
