@@ -122,7 +122,7 @@ defmodule Hue2.TweetInfo2 do
                 articles
                 |> Enum.sort_by(
                         fn(article) ->
-                                 100000 * ( max(article.favorite_count - 1, 0) + max(article.retweet_count - 1, 0) * 1.49 ) / article.followers_count
+                                100000 * ( max(article.favorite_count - 1, 0) + max(article.retweet_count - 1, 0) * 1.49 ) / article.followers_count
                         end 
                 )
         end
@@ -155,7 +155,7 @@ defmodule Hue2.TweetInfo2 do
         
         def store() do
                 #increase and reduce frequency -> hopefully avoid crashing bringing everything down...
-                ExTwitter.home_timeline([count: 7])
+                ExTwitter.home_timeline([count: 200])
                         #recursively find relevant tweets if need be
                         |> Stream.map(
                                 fn(tweet) ->
