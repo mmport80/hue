@@ -155,7 +155,7 @@ defmodule Hue2.TweetInfo2 do
         
         def store() do
                 #increase and reduce frequency -> hopefully avoid crashing bringing everything down...
-                ExTwitter.home_timeline([count: 200])
+                ExTwitter.home_timeline([count: 20])
                         #recursively find relevant tweets if need be
                         |> Stream.map(
                                 fn(tweet) ->
