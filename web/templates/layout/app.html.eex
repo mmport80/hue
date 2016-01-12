@@ -33,7 +33,7 @@
         <body>
                 
                 <div class="social" style="display: block;font-size: 1em; ">
-                        <p style="text-align: right; margin: 0;">
+                        <p style="text-align: right; margin: 0;margin-right: 1%;margin-top: 1%;">
                                 <a href="https://www.twitter.com/huebrent1">Twitter</a> / <a href="http://www.quantcasual.com/rss">RSS</a>
                         </p>
                 </div>
