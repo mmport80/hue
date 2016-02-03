@@ -8,7 +8,7 @@ defmodule Hue2.FeedController do
                 conn
                 |> put_layout(:none)
                 |> put_resp_content_type("application/xml")
-                |> render "index.xml", articles: articles
+                |> render("index.xml", articles: articles)
 
         end
 end
