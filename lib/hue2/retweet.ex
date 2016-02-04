@@ -14,6 +14,8 @@ defmodule Hue2.Retweet do
         end)
 
     get_articles() |>
+      #just take one at beginning
+      Enum.take(1) |>
       #map with index or reduce
       Enum.reduce(
         0,
