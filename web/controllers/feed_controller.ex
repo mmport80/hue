@@ -3,12 +3,12 @@ defmodule Hue2.FeedController do
         alias Hue2.Article
 
         def index(conn, _params) do
-                articles = Hue2.GetArticles.get_articles()
+                articles = Hue2.GetArticles.get_articles_for_website()
 
                 conn
-                |> put_layout(:none)
-                |> put_resp_content_type("application/xml")
-                |> render("index.xml", articles: articles)
+                  |> put_layout(:none)
+                  |> put_resp_content_type("application/xml")
+                  |> render("index.xml", articles: articles)
 
         end
 end

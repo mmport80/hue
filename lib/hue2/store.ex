@@ -31,7 +31,7 @@ defmodule Hue2.Store do
           #get external url
           |> get_expanded_url
           #get 'local' media url
-          |> get_local_media_url
+          #|> get_local_media_url
           #pull everything from source website
           |> get_source_data
         end
@@ -43,6 +43,7 @@ defmodule Hue2.Store do
         end
       )
       #only store tweets with a link
+      #change this? best not...
       |> Stream.filter(
         fn(article) ->
           article.expanded_url != nil
@@ -92,7 +93,8 @@ defmodule Hue2.Store do
     #
     article = %Article{
       media_url:              nil,
-      text:                   tweet.text,
+      #don't use tweet test anymore here, just pop with og desc from now on
+      text:                   nil,
       expanded_url:           nil,
       title:                  nil,
       favorite_count:         tweet.favorite_count,
@@ -123,59 +125,59 @@ defmodule Hue2.Store do
   defp has_source_url?( %ExTwitter.Model.Tweet{}=tweet ) do
     Map.has_key?(tweet.entities, :urls)
     && Enum.any?(tweet.entities.urls)
-    && (
-      url = tweet.entities.urls |> List.first
-      !String.match?( url.display_url, ~r/vine.co/ )
-    )
+    #don't worry about linking to vines anymore
+    #&& (
+    #  url = tweet.entities.urls |> List.first
+    #  !String.match?( url.display_url, ~r/vine.co/ )
+    #)
   end
 
   #####################################################################
 
-  defp get_local_media_url( %{tweet: %ExTwitter.Model.Tweet{} = tweet, article: %Article{} = article} ) do
-    vanilla_return = %{tweet: tweet, article: article}
-
-    cond do
+  #defp get_local_media_url( %{tweet: %ExTwitter.Model.Tweet{} = tweet, article: %Article{} = article} ) do
+  #  vanilla_return = %{tweet: tweet, article: article}
+  #  cond do
       #has media and has photos
-      Map.has_key?(tweet.entities, :media) ->
-        cond do
+  #    Map.has_key?(tweet.entities, :media) ->
+  #      cond do
           #has video, tweet is partial (do not support video right now)
-          Enum.any?( videos(tweet) ) ->
-            %{ vanilla_return | article:  %Article{ article | partial: true } }
+  #        Enum.any?( videos(tweet) ) ->
+  #          %{ vanilla_return | article:  %Article{ article | partial: true } }
           #has many photos, update partial - don't support multiple photo tweets
-          tweet |> photos |> length > 1 ->
-            %{ vanilla_return | article:  %Article{ article | partial: true } }
+  #        tweet |> photos |> length > 1 ->
+  #          %{ vanilla_return | article:  %Article{ article | partial: true } }
           #has single photo
-          tweet |> photos |> length == 1 ->
-            %{ vanilla_return | article:  %Article{ article | media_url: first_photo(tweet).media_url } }
-          true ->
-            vanilla_return
-        end
-      true ->
-        vanilla_return
-    end
-  end
+  #        tweet |> photos |> length == 1 ->
+  #          %{ vanilla_return | article:  %Article{ article | media_url: first_photo(tweet).media_url } }
+  #        true ->
+  #          vanilla_return
+  #      end
+  #    true ->
+  #      vanilla_return
+  #  end
+  #end
 
-  defp videos(%ExTwitter.Model.Tweet{}=tweet) do
-    tweet.entities.media
-      |> Enum.filter(
-        fn(medium) ->
-          !String.match?(medium.media_url, ~r/ext_tw_video_thumb/)
-        end
-      )
-  end
+  #defp videos(%ExTwitter.Model.Tweet{}=tweet) do
+  #  tweet.entities.media
+  #    |> Enum.filter(
+  #      fn(medium) ->
+  #        !String.match?(medium.media_url, ~r/ext_tw_video_thumb/)
+  #      end
+  #    )
+  #end
 
-  defp photos(%ExTwitter.Model.Tweet{}=tweet) do
-    tweet.entities.media
-      |> Enum.filter(
-        fn(medium) ->
-          medium.type == "photo"
-        end
-      )
-  end
+  #defp photos(%ExTwitter.Model.Tweet{}=tweet) do
+  #  tweet.entities.media
+  #    |> Enum.filter(
+  #      fn(medium) ->
+  #        medium.type == "photo"
+  #      end
+  #    )
+  #end
 
-  defp first_photo(%ExTwitter.Model.Tweet{}=tweet) do
-    photos(tweet) |> hd
-  end
+  #defp first_photo(%ExTwitter.Model.Tweet{}=tweet) do
+  #  photos(tweet) |> hd
+  #end
 
   #####################################################################
 

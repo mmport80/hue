@@ -4,6 +4,7 @@ defmodule Hue2.Retweet do
   #get articles
   #store
   def retweet() do
+
     #what's already been tweeted
     htl = ExTwitter.user_timeline(count: 200)
       |> Enum.filter(
@@ -13,9 +14,7 @@ defmodule Hue2.Retweet do
         fn(t) -> t.quoted_status.id_str
         end)
 
-    get_articles() |>
-      #just take one at beginning
-      Enum.take(1) |>
+    get_articles_for_twitter_feed() |>
       #map with index or reduce
       Enum.reduce(
         0,
@@ -55,6 +54,8 @@ defmodule Hue2.Retweet do
 
               #tweet rating and link to original tweet
               ExTwitter.update(s)
+              #print for testing
+              #IO.puts s
 
               acc + 1
           end

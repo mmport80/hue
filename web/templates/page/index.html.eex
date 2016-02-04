@@ -4,14 +4,20 @@
                 <a href='<%= article.expanded_url %>' target='_blank' >
                         <h2>
                                 <%= article.title %>
-                        </h2>                
-                </a>   
+                        </h2>
+                </a>
                 <%= if article.media_url != nil && article.media_url != "" do %>
-                        <img src='<%= article.media_url %>' />
+                  <a href='<%= article.expanded_url %>' target='_blank' >
+                    <img src='<%= article.media_url %>' />
+                  </a>
                 <% end %>
-                <p class="tweetText"><%= HtmlEntities.decode(article.text) %></p>
+                <p class="tweetText">
+                  <%= HtmlEntities.decode(article.text) %>
+                </p>
                 <p>
-                        {<a href="https://www.twitter.com/<%= article.tweet_author %>/status/<%= article.tweet_id_str %>" target='_blank' > <%= article.tweet_author %></a>}
+                        <a href="https://www.twitter.com/<%= article.tweet_author %>/status/<%= article.tweet_id_str %>" target='_blank' >
+                          Comments
+                        </a>
                 </p>
                 <hr />
         <% end %>

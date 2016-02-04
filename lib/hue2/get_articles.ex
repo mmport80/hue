@@ -4,9 +4,33 @@ defmodule Hue2.GetArticles do
 
   import Ecto.Query
 
-  def get_articles() do
+  def get_articles_for_website() do
     [show: n] = Application.get_env( :hue2, :settings )
 
+    get_articles()
+      #1) instead of partial, filter out tweets with no title for website
+      |> Enum.filter(
+        fn(article) ->
+          article.title != nil || article.media_url != nil
+        end
+      )
+      |> Enum.take(n)
+  end
+
+  def get_articles_for_twitter_feed() do
+    [show: n] = Application.get_env( :hue2, :settings )
+
+    get_articles()
+      #no filters
+      |> Enum.take(n)
+
+  end
+
+
+################################################################################################
+################################################################################################
+
+  defp get_articles() do
     #sql query
     Article
       |> where(
@@ -14,15 +38,8 @@ defmodule Hue2.GetArticles do
         a.inserted_at > datetime_add(^Ecto.DateTime.utc, -1, "day")
         )
       |> Repo.all
-      #filter out articles which have videos etc which we do not currently support
-      |> Enum.filter(
-        fn(article) ->
-          article.partial == false
-        end
-      )
       |> order
       |> remove_dupes
-      |> Enum.take(n)
   end
 
   defp order(articles) do
