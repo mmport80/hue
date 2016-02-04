@@ -4,11 +4,16 @@ defmodule Hue2.GetArticles do
 
   import Ecto.Query
 
-  def get_articles_for_website() do
-    [show: n] = Application.get_env( :hue2, :settings )
+################################################################################################
+#if quality isn't good enough
+#add a day component
+#look back more than 1 days
 
-    get_articles()
-      #1) instead of partial, filter out tweets with no title for website
+  def get_articles_for_website() do
+    [show: n]         = Application.get_env( :hue2, :settings )
+
+    get_articles(1)
+      #filter in tweets for website with either picture or title
       |> Enum.filter(
         fn(article) ->
           article.title != nil || article.media_url != nil
@@ -17,25 +22,25 @@ defmodule Hue2.GetArticles do
       |> Enum.take(n)
   end
 
-  def get_articles_for_twitter_feed() do
-    [show: n] = Application.get_env( :hue2, :settings )
+################################################################################################
 
-    get_articles()
+  def get_articles_for_twitter_feed() do
+    [show: n]         = Application.get_env( :hue2, :settings )
+
+    get_articles(1)
       #no filters
       |> Enum.take(n)
 
   end
 
-
 ################################################################################################
-################################################################################################
-
-  defp get_articles() do
+  #lookback x days
+  defp get_articles(days) do
     #sql query
     Article
       |> where(
         [a],
-        a.inserted_at > datetime_add(^Ecto.DateTime.utc, -1, "day")
+        a.inserted_at > datetime_add(^Ecto.DateTime.utc, ^(-1 * days), "day")
         )
       |> Repo.all
       |> order
