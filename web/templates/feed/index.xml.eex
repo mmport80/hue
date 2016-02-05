@@ -1,5 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?>  
-<rss version="2.0">  
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
         <channel>
                 <title>
                         Quant Casual
@@ -20,7 +20,7 @@
                                                 <![CDATA[ <%=  article.expanded_url %> ]]>
                                         </link>
                                 <% end %>
-                                
+
                                 <%= if article.media_url != nil && article.media_url != "" do %>
                                         <image>
                                                 <url>
@@ -34,11 +34,17 @@
                                                 </title>
                                         </image>
                                 <% end %>
-                                
+
                                 <description>
-                                        <![CDATA[<%= HtmlEntities.decode(article.text) %>]]>
+                                  <![CDATA[<%= HtmlEntities.decode(article.text) %>]]>
+                                  <![CDATA[
+                                    <br /><br />
+                                    <a href="https://www.twitter.com/<%= article.tweet_author %>/status/<%= article.tweet_id_str %>" target='_blank' >
+                                      Comments
+                                    </a>
+                                  ]]>
                                 </description>
-                                
+
                                 <pubDate>
                                         <%= date_format(article)  %>
                                 </pubDate>
@@ -46,8 +52,12 @@
                                         <guid isPermaLink="true">
                                                 <![CDATA[ <%= article.expanded_url %> ]]>
                                         </guid>
-                                <% end %>                       
+                                <% end %>
+
+
+
+
                         </item>
                 <% end %>
   </channel>
-</rss>  
+</rss>
