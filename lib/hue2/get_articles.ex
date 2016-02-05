@@ -10,7 +10,7 @@ defmodule Hue2.GetArticles do
 #look back more than 1 days
 
   def get_articles_for_website() do
-    [show: n]         = Application.get_env( :hue2, :settings )
+    [show: n] = Application.get_env( :hue2, :settings )
 
     get_articles(1)
       #filter in tweets for website with either picture or title
@@ -25,12 +25,10 @@ defmodule Hue2.GetArticles do
 ################################################################################################
 
   def get_articles_for_twitter_feed() do
-    [show: n]         = Application.get_env( :hue2, :settings )
-
+    [show: n] = Application.get_env( :hue2, :settings )
     get_articles(1)
       #no filters
       |> Enum.take(n)
-
   end
 
 ################################################################################################

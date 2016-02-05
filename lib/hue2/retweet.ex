@@ -14,7 +14,6 @@ defmodule Hue2.Retweet do
         end)
 
     get_articles_for_twitter_feed()
-      |> Enum.take(5)
       #map with index or reduce
       |> Enum.reduce(
         0,
