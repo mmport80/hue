@@ -10,7 +10,23 @@ defmodule Hue2.Mixfile do
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
      aliases: aliases,
-     deps: deps]
+     deps: deps,
+     dialyzer: [
+      plt_apps: ["phoenix", "phoenix_html", "cowboy", "phoenix_ecto", "postgrex", "ecto", "plug","floki","extwitter"],
+      flags: ["-Wunmatched_returns","-Werror_handling","-Wrace_conditions","-Wunderspecs","-Wunknown"],
+      paths: [
+        "_build/dev/lib/phoenix/ebin",
+        "_build/dev/lib/phoenix_html/ebin",
+        "_build/dev/lib/cowboy/ebin",
+        "_build/dev/lib/phoenix_ecto/ebin",
+        "_build/dev/lib/postgrex/ebin",
+        "_build/dev/lib/ecto/ebin",
+        "_build/dev/lib/plug/ebin",
+        "_build/dev/lib/floki/ebin",
+        "_build/dev/lib/extwitter/ebin"
+        ]
+     ]
+   ]
   end
 
   # Configuration for the OTP application.
@@ -38,7 +54,7 @@ defmodule Hue2.Mixfile do
      {:phoenix_html, "~> 2.1"},
      {:phoenix_live_reload, "~> 1.0", only: :dev},
      {:cowboy, "~> 1.0"},
-     
+
      {:extwitter, "~> 0.6"}  ,
      {:oauth, github: "tim/erlang-oauth"},
      {:extwitter, "~> 0.5"} ,
@@ -46,10 +62,12 @@ defmodule Hue2.Mixfile do
      {:httpoison, "~> 0.8"},
      {:timex, "~> 0.19"},
      {:timex_ecto, "~> 0.5"},
-     
+
      {:quantum, "~> 1.5"},
 
-     {:html_entities, "~> 0.2"}
+     {:html_entities, "~> 0.2"},
+
+     {:dialyxir, "~> 0.3", only: [:dev]}
    ]
   end
 

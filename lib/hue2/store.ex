@@ -125,59 +125,7 @@ defmodule Hue2.Store do
   defp has_source_url?( %ExTwitter.Model.Tweet{}=tweet ) do
     Map.has_key?(tweet.entities, :urls)
     && Enum.any?(tweet.entities.urls)
-    #don't worry about linking to vines anymore
-    #&& (
-    #  url = tweet.entities.urls |> List.first
-    #  !String.match?( url.display_url, ~r/vine.co/ )
-    #)
   end
-
-  #####################################################################
-
-  #defp get_local_media_url( %{tweet: %ExTwitter.Model.Tweet{} = tweet, article: %Article{} = article} ) do
-  #  vanilla_return = %{tweet: tweet, article: article}
-  #  cond do
-      #has media and has photos
-  #    Map.has_key?(tweet.entities, :media) ->
-  #      cond do
-          #has video, tweet is partial (do not support video right now)
-  #        Enum.any?( videos(tweet) ) ->
-  #          %{ vanilla_return | article:  %Article{ article | partial: true } }
-          #has many photos, update partial - don't support multiple photo tweets
-  #        tweet |> photos |> length > 1 ->
-  #          %{ vanilla_return | article:  %Article{ article | partial: true } }
-          #has single photo
-  #        tweet |> photos |> length == 1 ->
-  #          %{ vanilla_return | article:  %Article{ article | media_url: first_photo(tweet).media_url } }
-  #        true ->
-  #          vanilla_return
-  #      end
-  #    true ->
-  #      vanilla_return
-  #  end
-  #end
-
-  #defp videos(%ExTwitter.Model.Tweet{}=tweet) do
-  #  tweet.entities.media
-  #    |> Enum.filter(
-  #      fn(medium) ->
-  #        !String.match?(medium.media_url, ~r/ext_tw_video_thumb/)
-  #      end
-  #    )
-  #end
-
-  #defp photos(%ExTwitter.Model.Tweet{}=tweet) do
-  #  tweet.entities.media
-  #    |> Enum.filter(
-  #      fn(medium) ->
-  #        medium.type == "photo"
-  #      end
-  #    )
-  #end
-
-  #defp first_photo(%ExTwitter.Model.Tweet{}=tweet) do
-  #  photos(tweet) |> hd
-  #end
 
   #####################################################################
 
@@ -210,19 +158,19 @@ defmodule Hue2.Store do
                 #gotta figure out how to do this better - maybe pipes???
                 media_url = http.body |> Floki.find("meta[property='og:image']") |> Floki.attribute("content") |> List.first
 
-                if media_url != nil do
+                if media_url != nil && media_url != "" do
                   article = %Article{ article | media_url: media_url }
                 end
 
                 title = http.body |> Floki.find("meta[property='og:title']") |> Floki.attribute("content") |> List.first
 
-                if title != nil do
+                if title != nil && title != "" do
                   article = %Article{ article | title: String.slice(title,0,255) }
                 end
 
                 description = http.body |> Floki.find("meta[property='og:description']") |> Floki.attribute("content") |> List.first
 
-                if description != nil do
+                if description != nil && description != "" do
                   article = %Article{ article | text: String.slice(description,0,999) }
                 end
 
