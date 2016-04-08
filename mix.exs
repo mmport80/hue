@@ -12,19 +12,22 @@ defmodule Hue2.Mixfile do
      aliases: aliases,
      deps: deps,
      dialyzer: [
-      plt_apps: ["phoenix", "phoenix_html", "cowboy", "phoenix_ecto", "postgrex", "ecto", "plug","floki","extwitter"],
       flags: ["-Wunmatched_returns","-Werror_handling","-Wrace_conditions","-Wunderspecs","-Wunknown"],
-      paths: [
-        "_build/dev/lib/phoenix/ebin",
-        "_build/dev/lib/phoenix_html/ebin",
-        "_build/dev/lib/cowboy/ebin",
-        "_build/dev/lib/phoenix_ecto/ebin",
-        "_build/dev/lib/postgrex/ebin",
-        "_build/dev/lib/ecto/ebin",
-        "_build/dev/lib/plug/ebin",
-        "_build/dev/lib/floki/ebin",
-        "_build/dev/lib/extwitter/ebin"
-        ]
+      #plt_apps: ["extwitter", "phoenix", "phoenix_html", "cowboy", "phoenix_ecto", "postgrex", "ecto", "plug","floki"],
+      plt_file: "xdialyzer.plt",
+      #plt_add_dep: True,
+      #paths: [
+      #  "_build/dev/lib/phoenix/ebin",
+      #  "_build/dev/lib/phoenix_html/ebin",
+      #  "_build/dev/lib/cowboy/ebin",
+      #  "_build/dev/lib/phoenix_ecto/ebin",
+      #  "_build/dev/lib/postgrex/ebin",
+      #  "_build/dev/lib/ecto/ebin",
+      #  "_build/dev/lib/plug/ebin",
+      #  "_build/dev/lib/floki/ebin",
+      #  "_build/dev/lib/extwitter/ebin"
+      #  ]
+      #output_plt: ["dialyzer.plt"]
      ]
    ]
   end

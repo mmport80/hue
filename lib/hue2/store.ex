@@ -6,6 +6,7 @@ defmodule Hue2.Store do
   #get and store article data
   #every function accepts and returns an article object and a tweet
 
+  @spec store() :: list ( {:ok, Ecto.Schema.t} | {:error, Ecto.Changeset.t} )
   def store() do
     #increase and reduce frequency -> hopefully avoid crashing bringing everything down...
     ExTwitter.home_timeline([count: 20])
@@ -58,6 +59,7 @@ defmodule Hue2.Store do
   end
 
   #recursively find original tweet
+  @spec get_quoted_or_rtwd_status?( %ExTwitter.Model.Tweet{}, integer, list(char_list) ) :: %{ tweet: %ExTwitter.Model.Tweet{}, current_followers: integer, referrers: list(char_list) }
   defp get_quoted_or_rtwd_status?( %ExTwitter.Model.Tweet{} = tweet, followers, referrers ) do
     #add up followers, try to count up total tweet audience
     #collect user names along the way for H/Ts
@@ -87,7 +89,8 @@ defmodule Hue2.Store do
 
   #####################################################################
 
-  defp init( %{ tweet: tweet, current_followers: current_followers, referrers: referrers  } ) do
+  @spec init( %{tweet: %ExTwitter.Model.Tweet{}, current_followers: integer, referrers: list(char_list) } ) :: %{ tweet: %ExTwitter.Model.Tweet{}, article: %Article{} }
+  defp init( %{ tweet: tweet, current_followers: current_followers, referrers: referrers } ) do
     #take array of refers
     #insert array into hters table
     #
@@ -111,6 +114,7 @@ defmodule Hue2.Store do
 
   #####################################################################
 
+  @spec get_expanded_url( %{tweet: %ExTwitter.Model.Tweet{}, article: %Article{} } ) :: %{tweet: %ExTwitter.Model.Tweet{}, article: %Article{} }
   defp get_expanded_url( %{tweet: %ExTwitter.Model.Tweet{} = tweet, article: %Article{} = article} ) do
     vanilla_return = %{tweet: tweet, article: article}
     cond do
@@ -122,6 +126,7 @@ defmodule Hue2.Store do
     end
   end
 
+  @spec has_source_url?( %ExTwitter.Model.Tweet{} ) :: boolean
   defp has_source_url?( %ExTwitter.Model.Tweet{}=tweet ) do
     Map.has_key?(tweet.entities, :urls)
     && Enum.any?(tweet.entities.urls)
@@ -129,8 +134,8 @@ defmodule Hue2.Store do
 
   #####################################################################
 
+  @spec get_source_data(  %{tweet: %ExTwitter.Model.Tweet{}, article: %Article{} }  ) :: %{tweet: %ExTwitter.Model.Tweet{}, article: %Article{} }
   defp get_source_data( %{tweet: %ExTwitter.Model.Tweet{} = tweet, article: %Article{} = article} ) do
-
     vanilla_return = %{tweet: tweet, article: article}
 
     #tmblr causes hackney to crash...

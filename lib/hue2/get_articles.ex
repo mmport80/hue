@@ -9,10 +9,11 @@ defmodule Hue2.GetArticles do
 #add a day component
 #look back more than 1 days
 
+  @spec get_articles_for_website() :: list( %Article{} )
   def get_articles_for_website() do
     [show: n] = Application.get_env( :hue2, :settings )
 
-    get_articles(1)
+    get_articles()
       #filter in tweets for website with either picture or title
       |> Enum.filter(
         fn(article) ->
@@ -24,27 +25,31 @@ defmodule Hue2.GetArticles do
 
 ################################################################################################
 
+  @spec get_articles_for_twitter_feed() :: list( %Article{} )
   def get_articles_for_twitter_feed() do
     [show: n] = Application.get_env( :hue2, :settings )
-    get_articles(1)
+    get_articles()
       #no filters
       |> Enum.take(n)
   end
 
 ################################################################################################
   #lookback x days
-  defp get_articles(days) do
+  @spec get_articles() :: list( %Article{} )
+  defp get_articles() do
     #sql query
     Article
       |> where(
         [a],
-        a.inserted_at > datetime_add(^Ecto.DateTime.utc, ^(-1 * days), "day")
+        #1 = number of days
+        a.inserted_at > datetime_add(^Ecto.DateTime.utc, ^(-1 * 1), "day")
         )
       |> Repo.all
       |> order
       |> remove_dupes
   end
 
+  @spec order( list( %Article{} ) ) :: list( %Article{} )
   defp order(articles) do
     articles
     |> Enum.sort_by(
@@ -54,6 +59,7 @@ defmodule Hue2.GetArticles do
     )
   end
 
+  @spec remove_dupes( list( %Article{} ) ) :: list( %Article{} )
   defp remove_dupes(articles) do
     articles
     |> Enum.reduce(

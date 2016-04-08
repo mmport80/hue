@@ -2,7 +2,8 @@ defmodule Hue2.Retweet do
   import Hue2.GetArticles
 
   #get articles
-  #store
+  #retweet
+  @spec retweet() :: nil
   def retweet() do
     #what's already been tweeted
     htl = ExTwitter.user_timeline(count: 200)
@@ -48,11 +49,11 @@ defmodule Hue2.Retweet do
 
               #reduce referrers int "\nh/t @xoxo, @yoyo"
               referrers = referrer_string(a.referrers)
-
               s = rating <> " " <> referrers <> " " <> origTweetLink
 
               #tweet rating and link to original tweet
-              ExTwitter.update(s)
+              _ = ExTwitter.update(s)
+
               #print for testing
               #IO.puts s
 
@@ -62,6 +63,7 @@ defmodule Hue2.Retweet do
       )
   end
 
+  @spec referrer_string( list( char_list ) ) :: binary
   defp referrer_string(referrers) do
     cond do
       referrers != [] && referrers != nil ->
