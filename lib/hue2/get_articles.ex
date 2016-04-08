@@ -54,7 +54,9 @@ defmodule Hue2.GetArticles do
     articles
     |> Enum.sort_by(
       fn(article) ->
-        100000 * ( max(article.favorite_count - 1, 0) + max(article.retweet_count - 1, 0) * 1.49 ) / article.followers_count
+        #(faves + retweets) / (followers + 60 * retweets)
+
+        ( max(article.favorite_count - 1, 0) + max(article.retweet_count - 1, 0) * 1.49 ) / ( article.followers_count - 1 + max(article.retweet_count - 1, 0) * 60 )
       end
     )
   end
