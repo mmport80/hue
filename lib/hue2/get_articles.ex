@@ -54,8 +54,11 @@ defmodule Hue2.GetArticles do
     articles
     |> Enum.sort_by(
       fn(article) ->
-        mf = max(article.favorite_count - 1, 0)
-        mr = max(article.retweet_count - 1, 0)
+        #-1 or not?
+        #w extra 61 multiplier, try to do with out
+        fav = article.favorite_count
+        rtw = article.retweet_count
+        fol = article.followers_count
         #61 is an active user's median number of followers
         #mean is much higher, but median is less onerous on users with fewer followers
         #denominator tries to approx total audience of tweet
@@ -69,7 +72,7 @@ defmodule Hue2.GetArticles do
 
         #on average 1.5 faves ~= 1 retweet, i.e. 50% more likely to see faves
 
-        #todo: add time since original tweets was published
+        #todo: add time since original tweet was published
         #longer the time, expect more faves + retweets
         #tweet authored time minus snapshot when we see it (inserted time, in db?)
 
@@ -79,7 +82,7 @@ defmodule Hue2.GetArticles do
         #take the result and multiply it aginst ratio
         #then multiply total time against everything
 
-        ( mf + mr * 1.49 ) / ( max(article.followers_count - 1, 0) + mr * (61) )
+        ( fav + rtw * 1.49 ) / ( fol + rtw * 61 )
       end
     )
   end
