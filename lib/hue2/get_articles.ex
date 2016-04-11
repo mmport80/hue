@@ -47,6 +47,7 @@ defmodule Hue2.GetArticles do
       |> Repo.all
       |> order
       |> remove_dupes
+      |> no_self_retweets
   end
 
   @spec order( list( %Article{} ) ) :: list( %Article{} )
@@ -108,5 +109,15 @@ defmodule Hue2.GetArticles do
         end
       end
     )
+  end
+
+  #remove tweets which hue retweeted already
+  @spec no_self_retweets( list( %Article{} ) ) :: list( %Article{} )
+  defp no_self_retweets(articles) do
+    articles
+    |> Enum.filter(
+      fn(a) ->
+        a.referrers |> Enum.all?(fn(b) -> b != "huebrent1" end)
+      end)
   end
 end
