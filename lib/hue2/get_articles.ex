@@ -41,7 +41,7 @@ defmodule Hue2.GetArticles do
     Article
       |> where(
         [a],
-        #1 = number of days
+        #-1 * 1 = one day ago
         a.inserted_at > datetime_add(^Ecto.DateTime.utc, ^(-1 * 1), "day")
         )
       |> Repo.all
@@ -54,9 +54,32 @@ defmodule Hue2.GetArticles do
     articles
     |> Enum.sort_by(
       fn(article) ->
+        mf = max(article.favorite_count - 1, 0)
+        mr = max(article.retweet_count - 1, 0)
+        #61 is an active user's median number of followers
+        #mean is much higher, but median is less onerous on users with fewer followers
+        #denominator tries to approx total audience of tweet
+        #of course the number of ppl who actually see a tweet is a fraction of the whole...
+        #but perhaps the actual audience as a ratio of total possible audience is more or less constant
+        #therefore it washes out in the end...
+
+        #perhaps there's another field which shows how many ppl have actually seen a tweet?!?!
+
         #(faves + retweets) / (followers + 60 * retweets)
 
-        ( max(article.favorite_count - 1, 0) + max(article.retweet_count - 1, 0) * 1.49 ) / ( article.followers_count - 1 + max(article.retweet_count - 1, 0) * 60 )
+        #on average 1.5 faves ~= 1 retweet, i.e. 50% more likely to see faves
+
+        #todo: add time since original tweets was published
+        #longer the time, expect more faves + retweets
+        #tweet authored time minus snapshot when we see it (inserted time, in db?)
+
+        #longer time means greater actual audience and also more faves + retweets...
+        #how does this ratio grow over time?
+        #record, and then regress against ratio here
+        #take the result and multiply it aginst ratio
+        #then multiply total time against everything
+
+        ( mf + mr * 1.49 ) / ( max(article.followers_count - 1, 0) + mr * (61) )
       end
     )
   end
