@@ -94,6 +94,10 @@ defmodule Hue2.Store do
     #take array of refers
     #insert array into hters table
     #
+
+    {:ok, ca_t} = Timex.parse(tweet.created_at, "%a %b %d %H:%M:%S %z %Y", :strftime)
+    {:ok, ca_e} = Ecto.DateTime.load({{ca_t.year,ca_t.month,ca_t.day},{ca_t.hour,ca_t.minute,ca_t.second}})
+
     article = %Article{
       media_url:              nil,
       #don't use tweet test anymore here, just pop with og desc from now on
@@ -107,7 +111,8 @@ defmodule Hue2.Store do
       partial:                false,
       tweet_id_str:           tweet.id_str,
       tweet_author:           tweet.user.screen_name,
-      referrers:              referrers
+      referrers:              referrers,
+      tweet_created_at:       ca_e
       }
     %{tweet: tweet, article: article}
   end

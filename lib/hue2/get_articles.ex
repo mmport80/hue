@@ -4,6 +4,8 @@ defmodule Hue2.GetArticles do
 
   import Ecto.Query
 
+  alias Timex
+
 ################################################################################################
 #if quality isn't good enough
 #add a day component

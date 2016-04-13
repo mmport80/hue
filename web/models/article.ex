@@ -5,7 +5,7 @@ defmodule Hue2.Article do
         #make a bunch of fields necessary
         #tweetid - to ensure uniqueness
         schema "articles" do
-    
+
                 field :text,                :string
                 field :favorite_count,      :integer
                 field :retweet_count,       :integer
@@ -14,12 +14,14 @@ defmodule Hue2.Article do
                 field :expanded_url,        :string
                 field :title,               :string
                 field :description,         :string
-                #field :tweet_id,           :integer
+
                 field :tweet_author,    :string
                 field :tweet_id_str,    :string
                 field :partial,         :boolean
 
                 field :referrers,        {:array, :string}
+
+                field :tweet_created_at, Ecto.DateTime
 
                 timestamps
         end

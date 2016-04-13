@@ -53,22 +53,22 @@ defmodule Hue2.Mixfile do
   defp deps do
     [{:phoenix, "~> 1.1.3"},
      {:phoenix_ecto, "~> 1.1"},
-     {:postgrex, ">= 0.0.0"},
+     {:postgrex, ">= 0.11.1"},
      {:phoenix_html, "~> 2.1"},
      {:phoenix_live_reload, "~> 1.0", only: :dev},
      {:cowboy, "~> 1.0"},
 
-     {:extwitter, "~> 0.6"}  ,
+     {:extwitter, "~> 0.7"}  ,
      {:oauth, github: "tim/erlang-oauth"},
      {:extwitter, "~> 0.5"} ,
      {:floki, "~> 0.7"},
      {:httpoison, "~> 0.8"},
-     {:timex, "~> 0.19"},
-     {:timex_ecto, "~> 0.5"},
+     {:timex, "~> 2.1.4"},
+     {:timex_ecto, "~> 1.0.4"},
 
      {:quantum, "~> 1.5"},
 
-     {:html_entities, "~> 0.2"},
+     #{:html_entities, "~> 0.3"},
 
      {:dialyxir, "~> 0.3", only: [:dev]}
    ]

@@ -12,7 +12,7 @@
                   </a>
                 <% end %>
                 <p class="tweetText">
-                  <%= HtmlEntities.decode(article.text) %>
+                  <%= article.text %>
                 </p>
                 <p>
                         <a href="https://www.twitter.com/<%= article.tweet_author %>/status/<%= article.tweet_id_str %>" target='_blank' >
