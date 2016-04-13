@@ -63,6 +63,8 @@ defmodule Hue2.GetArticles do
         rtw = article.retweet_count
         fol = article.followers_count
         #61 is an active user's median number of followers
+        #subtract number of referrers, don't double count
+
         #mean is much higher, but median is less onerous on users with fewer followers
         #denominator tries to approx total audience of tweet
         #of course the number of ppl who actually see a tweet is a fraction of the whole...
@@ -85,7 +87,7 @@ defmodule Hue2.GetArticles do
         #take the result and multiply it aginst ratio
         #then multiply total time against everything
 
-        ( fav + rtw * 1.49 ) / ( fol + rtw * 61 )
+        ( fav + rtw * 1.49 ) / ( fol + ( rtw - length article.referrers ) * 61 )
       end
     )
   end
