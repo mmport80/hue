@@ -43,7 +43,7 @@ defmodule Hue2.Mixfile do
     ]
   end
 
-  # Specifies which paths to compile per environment.
+  # Specifies which paths to compile per envmix local.rebarironment.
   defp elixirc_paths(:test), do: ["lib", "web", "test/support"]
   defp elixirc_paths(_),     do: ["lib", "web"]
 

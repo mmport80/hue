@@ -31,8 +31,8 @@ defmodule Hue2.GetArticles do
   def get_articles_for_twitter_feed() do
     [show: n] = Application.get_env( :hue2, :settings )
     get_articles()
-      #no filters
-      |> Enum.take(n)
+      #set back to n when ready
+      |> Enum.take(1)
   end
 
 ################################################################################################
@@ -46,10 +46,19 @@ defmodule Hue2.GetArticles do
         #-1 * 1 = one day ago
         a.inserted_at > datetime_add(^Ecto.DateTime.utc, ^(-1 * 1), "day")
         )
+      |> order_by( [c], desc: c.id )
       |> Repo.all
       |> order
       |> remove_dupes
-      |> no_self_retweets
+      #do this when storing, rather than here
+      #|> no_self_retweets
+
+      #b = Enum.map(c, (fn(x) -> x.id end))
+
+  end
+
+  defp convert_ecto_to_timex_datetime(a) do
+    Timex.DateTime.from({{a.year,a.month,a.day},{a.hour,a.min,a.sec}})
   end
 
   @spec order( list( %Article{} ) ) :: list( %Article{} )
@@ -57,6 +66,13 @@ defmodule Hue2.GetArticles do
     articles
     |> Enum.sort_by(
       fn(article) ->
+        inserted_date = convert_ecto_to_timex_datetime(article.inserted_at)
+        created_date = convert_ecto_to_timex_datetime(article.tweet_created_at)
+
+        diff = Timex.DateTime.diff(inserted_date, created_date, :hours)
+
+        days = max( diff, 1 ) / 24
+
         #-1 or not?
         #w extra 61 multiplier, try to do with out
         fav = article.favorite_count
@@ -87,7 +103,8 @@ defmodule Hue2.GetArticles do
         #take the result and multiply it aginst ratio
         #then multiply total time against everything
 
-        ( fav + rtw * 1.49 ) / ( fol + ( rtw - length article.referrers ) * 61 )
+        #faves etc, per ~user, per day
+        ( fav + rtw * 1.49 ) / ( fol + ( rtw - length article.referrers ) * 61 ) / days
       end
     )
   end

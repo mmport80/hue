@@ -47,7 +47,9 @@ defmodule Hue2.Store do
       #change this? best not...
       |> Stream.filter(
         fn(article) ->
-          article.expanded_url != nil
+          #don't save anything without a url
+          #don't retweet own tweets
+          article.expanded_url != nil && ( article.referrers |> Enum.all?( fn(b) -> b != "huebrent1" end ) )
         end
       )
       #update db

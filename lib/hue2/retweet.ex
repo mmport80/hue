@@ -45,7 +45,7 @@ defmodule Hue2.Retweet do
                     "~Top Daily Pick~"
                 end
 
-              IO.inspect a.referrers
+              #IO.inspect a.referrers
 
               #reduce referrers int "\nh/t @xoxo, @yoyo"
               referrers = referrer_string(a.referrers)
