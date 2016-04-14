@@ -32,7 +32,7 @@ defmodule Hue2.GetArticles do
     [show: n] = Application.get_env( :hue2, :settings )
     get_articles()
       #set back to n when ready
-      |> Enum.take(4)
+      |> Enum.take(n)
   end
 
 ################################################################################################
