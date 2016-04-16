@@ -66,21 +66,13 @@ defmodule Hue2.Store do
     #add up followers, try to count up total tweet audience
     #collect user names along the way for H/Ts
     cond do
-      tweet.retweeted_status == nil && tweet.quoted_status == nil && tweet.in_reply_to_status_id_str == nil ->
-        #update followers with total countable (approx) audience
-        %{ tweet: tweet, current_followers: followers, referrers: Enum.uniq(referrers) }
-      tweet.quoted_status != nil ->
-        tweet.quoted_status.id
-          |> ExTwitter.show
-          |> get_quoted_or_rtwd_status?( followers + tweet.user.followers_count, [ tweet.user.screen_name | referrers ] )
       tweet.retweeted_status != nil ->
         tweet.retweeted_status.id
           |> ExTwitter.show
           |> get_quoted_or_rtwd_status?( followers + tweet.user.followers_count, [ tweet.user.screen_name | referrers ] )
       true ->
-        tweet.in_reply_to_status_id_str
-          |> ExTwitter.show
-          |> get_quoted_or_rtwd_status?( followers + tweet.user.followers_count, [ tweet.user.screen_name | referrers ] )
+          #update followers with total countable (approx) audience
+          %{ tweet: tweet, current_followers: followers, referrers: Enum.uniq(referrers) }
     end
   end
 
@@ -110,6 +102,7 @@ defmodule Hue2.Store do
       retweet_count:          tweet.retweet_count,
       #total audience approximation
       followers_count:        tweet.user.followers_count + current_followers,
+      #switch to quoted
       partial:                false,
       tweet_id_str:           tweet.id_str,
       tweet_author:           tweet.user.screen_name,

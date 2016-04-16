@@ -23,6 +23,7 @@ defmodule Hue2.GetArticles do
         end
       )
       |> Enum.take(n)
+      #remove quoted tweets
   end
 
 ################################################################################################
