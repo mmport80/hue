@@ -9,7 +9,7 @@ defmodule Hue2.Store do
   @spec store() :: list ( {:ok, Ecto.Schema.t} | {:error, Ecto.Changeset.t} )
   def store() do
     #increase and reduce frequency -> hopefully avoid crashing bringing everything down...
-    ExTwitter.home_timeline([count: 20])
+    ExTwitter.home_timeline([count: 50])
       #recursively find relevant tweets if need be
       |> Stream.map(
         fn(tweet) ->

@@ -15,11 +15,14 @@ defmodule Hue2.GetArticles do
   def get_articles_for_website() do
     [show: n] = Application.get_env( :hue2, :settings )
 
+    #exclude quoted tweets which pt back to Twitter (hard to get right on web)
+    bad_urls = [ "https://t.co/", "https://twitter.com/" ]
+
     get_articles()
       #filter in tweets for website with either picture or title
       |> Enum.filter(
         fn(article) ->
-          article.title != nil || article.media_url != nil
+          ( article.title != nil || article.media_url != nil ) && !String.starts_with?(article.expanded_url, bad_urls)
         end
       )
       |> Enum.take(n)
