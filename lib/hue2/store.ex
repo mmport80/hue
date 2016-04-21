@@ -18,9 +18,10 @@ defmodule Hue2.Store do
         end
       )
       #filter out tweets with zero faves & retweets
+      #+ ensure not retweeting oneself
       |> Stream.filter(
         fn( %{ tweet: tweet, current_followers: _, referrers: _  } ) ->
-          tweet.favorite_count > 1 || tweet.retweet_count > 1
+          (tweet.favorite_count > 1 || tweet.retweet_count > 1) && tweet.id_str != "3980011745"
         end
       )
       #map / setup
